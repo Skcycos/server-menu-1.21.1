@@ -108,6 +108,13 @@ neoForge {
             sourceSet(sourceSets.main)
         }
     }
+
+    // JUnit 测试接入游戏运行环境：让测试可以使用真实 Minecraft/NeoForge 类
+    // （FriendlyByteBuf/Netty 字节级 codec 往返测试需要真实网络缓冲）。
+    unitTest {
+        enable()
+        testedMod = mods.named("${mod_id}")
+    }
 }
 
 // Sets up a dependency configuration called 'localRuntime'.
@@ -119,21 +126,56 @@ configurations {
 }
 
 dependencies {
-    // ApricityUI 硬依赖（NeoForge 1.21.1）——手机菜单 UI 全部由 AUI 渲染。
+    // ApricityUI 硬依赖（NeoForge 1.21.1）——Pad 菜单 UI 全部由 AUI 渲染。
     // 服务端 dev 运行（./gradlew runServer -PserverOnly）不需要 AUI（客户端专属），
     // 此时降级为 compileOnly 避免 AUI 在专用服务器上被加载。
     if (project.hasProperty('serverOnly')) {
-        compileOnly "com.sighs:ApricityUI-neoforge-1.21.1:1.2.1"
+        compileOnly "com.sighs:ApricityUI-neoforge-1.21.1:1.2.3.1"
     } else {
-        implementation "com.sighs:ApricityUI-neoforge-1.21.1:1.2.1"
+        implementation "com.sighs:ApricityUI-neoforge-1.21.1:1.2.3.1"
     }
+
+    // 三个业务 Mod 的公开 API 仅用于编译（compileOnly）：
+    // - 运行时业务 Mod 保持可选（mods.toml 中为 optional），服务器缺少任一业务 Mod 也能启动；
+    // - 业务 JAR 绝不进入 server-menu 的发布产物；
+    // - 对应适配器只在确认 ModList.isLoaded 之后才通过白名单类名反射加载。
+    compileOnly files(businessApiJars())
 
     // Unit tests for pure menu logic
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'com.google.code.gson:gson:2.11.0'
-    testImplementation 'org.slf4j:slf4j-api:2.0.13'
-    testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.13'
+    // Gson/slf4j 版本与 Minecraft 严格依赖保持一致（unitTest 接入 NeoForge 后
+    // testCompileClasspath 含 neoforge 依赖，版本不一致会解析失败）。
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testImplementation 'org.slf4j:slf4j-api:2.0.9'
+    testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.9'
+
+    // 测试用真实业务 JAR 验证：API 类存在、适配器结构、兼容性描述符与 jar 内容一致。
+    // 仅用于测试（不进入发布产物）；纯 JUnit 环境不会加载业务 Mod（无 ModList）。
+    testImplementation files(businessApiJars())
+}
+
+// FML-JUnit 会在测试 JVM 中加载 classpath 上的全部 Mod；ApricityUI 是客户端专属 Mod，
+// 在测试环境加载会失败（与 runServer 的 serverOnly 处理同理），测试运行时排除它。
+configurations.testRuntimeClasspath {
+    exclude group: 'com.sighs', module: 'ApricityUI-neoforge-1.21.1'
+}
+
+/** 业务 Mod 编译用本地 JAR；缺失时给出清晰错误，提示先构建对应项目。 */
+def businessApiJars() {
+    return [
+            "../buildshop-1.21.1/build/libs/buildshop-1.0.0.jar",
+            "../stockmarket-1.21.1/build/libs/stockmarket-1.0.0.jar",
+            "../chinese-oracle-1.21.1/build/libs/chinese_oracle-1.0.0.jar",
+    ].collect { path ->
+        def file = project.file(path)
+        if (!file.exists()) {
+            throw new GradleException(
+                    "缺少业务 Mod 编译用 JAR：${file}。请先在对应项目目录执行 ./gradlew build 生成，"
+                            + "例如：cd ${file.parentFile.parentFile.name} && ./gradlew build")
+        }
+        file
+    }
 }
 
 test {

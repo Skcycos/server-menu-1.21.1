@@ -1,0 +1,464 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="aui-font-mode" content="web">
+    <meta name="aui-viewport" content="mode=browser">
+    <meta name="aui-mouse-events" content="intercept">
+    <title>服务器服务中心</title>
+    <style>
+        :root {
+            --paper: #f3ecdf;
+            --paper-light: #fbf8f0;
+            --paper-deep: #e8ddca;
+            --paper-line: #d6c8b1;
+            --ink: #303832;
+            --ink-muted: #77766d;
+            --ink-light: #9b988d;
+            --jade: #3f6d60;
+            --jade-dark: #2d5147;
+            --jade-soft: #e4eee8;
+            --cinnabar: #a84f42;
+            --cinnabar-dark: #883b32;
+            --cinnabar-soft: #f2ded8;
+            --gold: #ad7b28;
+            --gold-soft: #f4e9cc;
+            --white: #fffdf8;
+            --shadow: rgba(75, 56, 33, 0.18);
+            --bezel: #43392f;
+            --bezel-dark: #332b23;
+            --bezel-edge: #6b5d4c;
+        }
+
+        * { box-sizing: border-box; }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink);
+            /* 外部区域半透明：世界从 Pad 四周透出，仅加一层暖色帷幔与细微网格，
+               不再用不透明宣纸底色整屏遮挡。 */
+            background:
+                linear-gradient(90deg, rgba(120, 92, 50, 0.06) 1px, transparent 1px) 0 0 / 24px 24px,
+                linear-gradient(rgba(120, 92, 50, 0.045) 1px, transparent 1px) 0 0 / 24px 24px,
+                rgba(38, 30, 21, 0.40);
+            font-family: "servermenu-ui", "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun",
+                         "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+        }
+
+        /* Pad 外壳：窄边框、圆角、轻微阴影 */
+        .pad {
+            display: flex;
+            width: min(940px, calc(100vw - 48px));
+            height: min(600px, calc(100vh - 64px));
+            min-height: 0;
+            padding: 14px;
+            background: linear-gradient(160deg, var(--bezel-edge), var(--bezel) 34%, var(--bezel-dark));
+            border: 1px solid #7a6b58;
+            border-radius: 26px;
+            box-shadow: 8px 10px 0 var(--shadow);
+        }
+
+        /* 屏幕：宣纸暖色，位于外壳内部 */
+        .screen {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: var(--paper-light);
+            border: 1px solid var(--paper-line);
+            border-radius: 16px;
+        }
+
+        .pad-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex: 0 0 auto;
+            min-height: 64px;
+            padding: 12px 22px;
+            border-bottom: 1px solid var(--paper-line);
+        }
+
+        .eyebrow {
+            margin: 0 0 3px;
+            color: var(--cinnabar);
+            font-family: "servermenu-ui", "Microsoft YaHei", sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .pad-title {
+            margin: 0;
+            color: var(--jade-dark);
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            white-space: nowrap;
+        }
+
+        .head-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink-muted);
+            font-size: 12px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .head-meta .sep {
+            color: var(--paper-line);
+        }
+
+        /* 三张应用卡片横向排列 */
+        .apps {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 18px;
+            flex: 1 1 auto;
+            min-height: 0;
+            padding: 26px 28px 12px;
+        }
+
+        .app-card {
+            display: flex;
+            flex: 1 1 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 0;
+            padding: 18px 14px;
+            color: var(--ink);
+            background: var(--white);
+            border: 1px solid var(--paper-line);
+            border-top: 4px solid var(--jade);
+            box-shadow: 4px 4px 0 var(--shadow);
+            cursor: pointer;
+            transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: #9eb9a9;
+            box-shadow: 5px 6px 0 rgba(75, 56, 33, 0.2);
+        }
+
+        .app-card:active { transform: translate(1px, 1px); }
+
+        /* 未安装：明显降级 */
+        .app-card.missing {
+            opacity: 0.55;
+            border-top-color: var(--ink-light);
+            cursor: not-allowed;
+        }
+
+        .app-card.missing:hover {
+            transform: none;
+            border-color: var(--paper-line);
+            box-shadow: 4px 4px 0 var(--shadow);
+        }
+
+        .app-card.missing .seal {
+            background: var(--ink-light);
+            border-color: var(--ink-muted);
+        }
+
+        /* 文字印章图标：纯 HTML/CSS */
+        .seal {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 58px;
+            height: 58px;
+            flex: 0 0 58px;
+            margin-bottom: 14px;
+            color: #fff9ed;
+            background: var(--cinnabar);
+            border: 2px solid var(--cinnabar-dark);
+            box-shadow: 3px 3px 0 rgba(136, 59, 50, 0.25);
+            font-size: 29px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .seal::after {
+            content: "";
+            position: absolute;
+            inset: 5px;
+            border: 1px solid rgba(255, 249, 237, 0.6);
+        }
+
+        .app-name {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            color: var(--jade-dark);
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .app-subtitle {
+            max-width: 100%;
+            margin-top: 6px;
+            overflow: hidden;
+            color: var(--ink-muted);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .app-state {
+            min-width: 64px;
+            margin-top: 14px;
+            padding: 5px 12px;
+            color: var(--gold);
+            background: var(--gold-soft);
+            border: 1px solid #e3d3ad;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .app-state.pending {
+            color: var(--gold);
+            background: var(--gold-soft);
+            border-color: #e3d3ad;
+        }
+
+        .app-state.connected {
+            color: #fffaf0;
+            background: var(--jade);
+            border-color: var(--jade-dark);
+        }
+
+        .app-state.missing {
+            color: var(--cinnabar-dark);
+            background: var(--cinnabar-soft);
+            border-color: #ddb5ab;
+        }
+
+        /* 服务端摘要区：紧凑、不溢出卡片；首行用 jade 强调 */
+        .app-summary {
+            max-width: 100%;
+            margin-top: 5px;
+            overflow: hidden;
+            color: var(--ink-muted);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .app-summary.lead {
+            margin-top: 10px;
+            color: var(--jade-dark);
+        }
+
+        .app-summary.hidden {
+            display: none;
+        }
+
+        /* 状态提示区域 */
+        .status-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            min-height: 58px;
+            padding: 8px 24px;
+        }
+
+        .status-bar {
+            max-width: 100%;
+            padding: 8px 16px;
+            color: var(--jade-dark);
+            background: var(--jade-soft);
+            border: 1px solid #9eb9a9;
+            box-shadow: 2px 2px 0 var(--shadow);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .status-bar.error {
+            color: var(--cinnabar-dark);
+            background: var(--cinnabar-soft);
+            border-color: #d7a79d;
+        }
+
+        /* 底栏 */
+        .pad-foot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 0 0 auto;
+            min-height: 44px;
+            color: var(--ink-light);
+            background: var(--paper-deep);
+            border-top: 1px solid var(--paper-line);
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .home-mark {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .home-mark::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border: 1px solid var(--cinnabar);
+            border-radius: 50%;
+            background: var(--cinnabar-soft);
+        }
+
+        @media (max-width: 720px) {
+            .pad {
+                width: calc(100vw - 24px);
+                height: calc(100vh - 24px);
+                padding: 10px;
+                border-radius: 20px;
+            }
+
+            .screen { border-radius: 12px; }
+
+            .apps {
+                gap: 10px;
+                padding: 18px 14px 8px;
+            }
+
+            .pad-head { padding: 10px 16px; }
+            .pad-title { font-size: 20px; }
+        }
+
+        @media (max-width: 560px) {
+            /* 小窗口：卡片纵向堆叠，保证不出屏 */
+            .apps {
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .app-card {
+                flex: 0 0 auto;
+                flex-direction: row;
+                gap: 14px;
+                justify-content: flex-start;
+                width: 100%;
+                padding: 10px 16px;
+            }
+
+            .seal {
+                width: 46px;
+                height: 46px;
+                flex: 0 0 46px;
+                margin: 0;
+                font-size: 23px;
+            }
+
+            .app-card-body {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .app-state { margin-top: 5px; }
+            .head-meta { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="pad">
+        <div class="screen">
+            <header class="pad-head">
+                <div class="brand">
+                    <p class="eyebrow">SERVER SERVICE CENTER</p>
+                    <h1 class="pad-title">服务器服务中心</h1>
+                </div>
+                <div class="head-meta">
+                    <span id="pad-date"></span>
+                    <span class="sep">/</span>
+                    <span id="pad-player"></span>
+                </div>
+            </header>
+
+            <main class="apps" id="app-cards">
+                <div class="app-card" data-app="build_shop">
+                    <div class="seal">建</div>
+                    <div class="app-card-body">
+                        <div class="app-name">建筑商店</div>
+                        <div class="app-subtitle">建材采购与库存</div>
+                        <div id="app-state-build_shop" class="app-state pending">待接入</div>
+                        <div id="app-summary-build_shop-0" class="app-summary"></div>
+                        <div id="app-summary-build_shop-1" class="app-summary"></div>
+                        <div id="app-summary-build_shop-2" class="app-summary"></div>
+                    </div>
+                </div>
+
+                <div class="app-card" data-app="stock_market">
+                    <div class="seal">股</div>
+                    <div class="app-card-body">
+                        <div class="app-name">股市</div>
+                        <div class="app-subtitle">行情、持仓与交易</div>
+                        <div id="app-state-stock_market" class="app-state pending">待接入</div>
+                        <div id="app-summary-stock_market-0" class="app-summary"></div>
+                        <div id="app-summary-stock_market-1" class="app-summary"></div>
+                        <div id="app-summary-stock_market-2" class="app-summary"></div>
+                    </div>
+                </div>
+
+                <div class="app-card" data-app="chinese_oracle">
+                    <div class="seal">历</div>
+                    <div class="app-card-body">
+                        <div class="app-name">今日黄历</div>
+                        <div class="app-subtitle">今日宜忌与运势</div>
+                        <div id="app-state-chinese_oracle" class="app-state pending">待接入</div>
+                        <div id="app-summary-chinese_oracle-0" class="app-summary"></div>
+                        <div id="app-summary-chinese_oracle-1" class="app-summary"></div>
+                        <div id="app-summary-chinese_oracle-2" class="app-summary"></div>
+                    </div>
+                </div>
+            </main>
+
+            <div class="status-area">
+                <div id="status-bar" class="status-bar info">——</div>
+            </div>
+
+            <footer class="pad-foot">
+                <span class="home-mark">首页</span>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

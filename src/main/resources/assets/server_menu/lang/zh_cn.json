@@ -1,0 +1,6 @@
+{
+  "itemGroup.server_menu": "服务器服务中心",
+
+  "item.server_menu.tablet": "Pad",
+  "item.server_menu.tablet.tooltip": "服务器统一 Pad 菜单"
+}

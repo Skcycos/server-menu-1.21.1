@@ -1,0 +1,35 @@
+package com.tanrunn.servermenu.server.registry;
+
+import com.tanrunn.servermenu.ServerMenuMod;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+/**
+ * server-menu 物品：Pad（tablet）。
+ *
+ * <p>外观暂时使用原版纹理占位（echo_shard），右键行为由
+ * {@link com.tanrunn.servermenu.server.hook.TabletHooks} 在服务端处理。</p>
+ */
+public final class ModItems {
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServerMenuMod.MODID);
+    public static final DeferredRegister<CreativeModeTab> TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ServerMenuMod.MODID);
+
+    public static final DeferredItem<Item> TABLET = ITEMS.registerSimpleItem("tablet", new Item.Properties().stacksTo(1));
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.server_menu"))
+                    .icon(() -> new ItemStack(TABLET.get()))
+                    .displayItems((parameters, output) -> output.accept(TABLET.get()))
+                    .build());
+
+    private ModItems() {
+    }
+}

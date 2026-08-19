@@ -46,16 +46,14 @@ displayName="${mod_name}" #mandatory
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-服务器手机菜单 (Server Menu) — 服务器内手机菜单模组。
-右键「手机」物品打开 AUI 渲染的菜单，菜单项由服务器端配置文件定义（命令/物品/链接）。
-Server-side configurable phone menu with an ApricityUI-driven client interface.
+服务器 Pad 菜单 (Server Menu) — 服务器内统一 Pad 菜单模组。
+手持 Pad 物品或执行 /servermenu（别名 /pad）打开 AUI 渲染的主界面；
+建筑商店、股市和黄历均可从统一 Pad 打开。
+Server-side unified Pad menu rendered with ApricityUI. Open the Pad item or
+use /servermenu (alias /pad); building shop, stock market and the Chinese
+almanac can be launched from one Pad.
 '''
 
-# The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
-[[mixins]]
-config="${mod_id}.mixins.json"
-
-# The [[accessTransformers]] block allows you to declare where your AT file is.
 # If this block is omitted, a fallback attempt will be made to load an AT from META-INF/accesstransformer.cfg
 #[[accessTransformers]]
 #file="META-INF/accesstransformer.cfg"
@@ -96,9 +94,32 @@ config="${mod_id}.mixins.json"
 [[dependencies.${mod_id}]]
     modId="apricityui"
     type="required"
-    versionRange="[1.2.1,)"
+    versionRange="[1.2.3.1,)"
     ordering="NONE"
     side="CLIENT"
+
+# 三个业务模组为可选依赖（BOTH）：仅在已安装时对应应用卡片可用。
+# 它们不是 required——专用服务器与未安装业务模组的服务器都可以正常运行。
+[[dependencies.${mod_id}]]
+    modId="buildshop"
+    type="optional"
+    versionRange="[1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="stockmarket"
+    type="optional"
+    versionRange="[1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="chinese_oracle"
+    type="optional"
+    versionRange="[1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't

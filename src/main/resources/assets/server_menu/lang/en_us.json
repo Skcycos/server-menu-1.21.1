@@ -1,0 +1,6 @@
+{
+  "itemGroup.server_menu": "Server Service Center",
+
+  "item.server_menu.tablet": "Pad",
+  "item.server_menu.tablet.tooltip": "Server-wide Pad menu"
+}
