@@ -194,10 +194,11 @@ class AppSummaryRegistryTest {
     @Test
     void realDescriptorProbeSucceedsAndWritesOnlySummaryCache() {
         // unitTest 环境（Minecraft + 业务 JAR 均在测试 classpath）：真实描述符探测应成功。
+        // BuildShop 与其他业务一样提供真实 summary API，验证摘要探测成功。
         // 启动链路缓存是否被触碰由 AppSummaryLauncherIsolationTest（server.integration 包）验证。
-        boolean probed = AppSummaryRegistry.isSummaryCompatible(MenuApp.BUILD_SHOP);
+        boolean probed = AppSummaryRegistry.isSummaryCompatible(MenuApp.STOCK_MARKET);
         assertTrue(probed);
-        assertEquals(Boolean.TRUE, AppSummaryRegistry.summaryCompatForTesting(MenuApp.BUILD_SHOP));
+        assertEquals(Boolean.TRUE, AppSummaryRegistry.summaryCompatForTesting(MenuApp.STOCK_MARKET));
     }
 
     // ------------------------------------------------------------ guarded call

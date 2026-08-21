@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RealBusinessJarSummaryProbeTest {
 
     @Test
-    void everyRealBusinessApiHasPublicStaticSummaryWithExactDescriptor() throws Exception {
+    void everyRealBusinessApiSummaryDescriptorMatchesActualJar() throws Exception {
         for (MenuApp app : MenuApp.ALL) {
             SummaryDescriptor descriptor = AppSummaryRegistry.descriptorFor(app);
             assertNotNull(descriptor, "缺少摘要描述符：" + app.id());
@@ -33,6 +33,7 @@ class RealBusinessJarSummaryProbeTest {
                     .filter(m -> "summary".equals(m.name()))
                     .findFirst()
                     .orElse(null);
+
             assertNotNull(method, "业务 API 缺少 summary 方法：" + descriptor.apiClassName());
             assertTrue(method.isPublic(), "summary 必须 public：" + descriptor.apiClassName());
             assertTrue(method.isStatic(), "summary 必须 static：" + descriptor.apiClassName());

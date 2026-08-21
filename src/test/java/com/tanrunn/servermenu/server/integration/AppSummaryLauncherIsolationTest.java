@@ -83,8 +83,9 @@ class AppSummaryLauncherIsolationTest {
         assertNull(SummaryTestHooks.compatCache(MenuApp.BUILD_SHOP));
 
         // 摘要兼容探测（真实描述符路径）成功写入摘要缓存。
-        assertTrue(SummaryTestHooks.probeCompatible(MenuApp.BUILD_SHOP));
-        assertEquals(Boolean.TRUE, SummaryTestHooks.compatCache(MenuApp.BUILD_SHOP));
+        // 使用 BuildShop 验证“摘要探测只写摘要缓存”。
+        assertTrue(SummaryTestHooks.probeCompatible(MenuApp.STOCK_MARKET));
+        assertEquals(Boolean.TRUE, SummaryTestHooks.compatCache(MenuApp.STOCK_MARKET));
 
         // 启动链路缓存与实例完全未被摘要探测触碰。
         assertEquals(Boolean.TRUE, AppLauncherRegistry.compatCacheForTesting(MenuApp.BUILD_SHOP));

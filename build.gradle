@@ -141,9 +141,17 @@ dependencies {
     // - 对应适配器只在确认 ModList.isLoaded 之后才通过白名单类名反射加载。
     compileOnly files(businessApiJars())
 
+    // Lightman's Currency typed adapter 的编译依赖（compileOnly）：
+    // - 只有 server/integration/lc 包引用 LC 类；api.economy 公共 API 绝不引用 LC；
+    // - LC JAR 绝不进入 server-menu 的发布产物（compileOnly）；
+    // - 适配器只在 ModList.isLoaded("lightmanscurrency") 且探针通过后反射加载。
+    compileOnly files(lcReferenceJar())
+
     // Unit tests for pure menu logic
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // 注册表/边界守卫测试的 mock 玩家（与 buildshop/stockmarket 保持一致）。
+    testImplementation 'org.mockito:mockito-core:5.12.0'
     // Gson/slf4j 版本与 Minecraft 严格依赖保持一致（unitTest 接入 NeoForge 后
     // testCompileClasspath 含 neoforge 依赖，版本不一致会解析失败）。
     testImplementation 'com.google.code.gson:gson:2.10.1'
@@ -153,6 +161,8 @@ dependencies {
     // 测试用真实业务 JAR 验证：API 类存在、适配器结构、兼容性描述符与 jar 内容一致。
     // 仅用于测试（不进入发布产物）；纯 JUnit 环境不会加载业务 Mod（无 ModList）。
     testImplementation files(businessApiJars())
+    // 测试用 LC 参考 JAR：描述符探针校验服务器安装的 LC API 签名与适配器所用反射名一致。
+    testImplementation files(lcReferenceJar())
 }
 
 // FML-JUnit 会在测试 JVM 中加载 classpath 上的全部 Mod；ApricityUI 是客户端专属 Mod，
@@ -161,21 +171,100 @@ configurations.testRuntimeClasspath {
     exclude group: 'com.sighs', module: 'ApricityUI-neoforge-1.21.1'
 }
 
-/** 业务 Mod 编译用本地 JAR；缺失时给出清晰错误，提示先构建对应项目。 */
-def businessApiJars() {
-    return [
-            "../buildshop-1.21.1/build/libs/buildshop-1.0.0.jar",
-            "../stockmarket-1.21.1/build/libs/stockmarket-1.0.0.jar",
-            "../chinese-oracle-1.21.1/build/libs/chinese_oracle-1.0.0.jar",
-    ].collect { path ->
-        def file = project.file(path)
-        if (!file.exists()) {
-            throw new GradleException(
-                    "缺少业务 Mod 编译用 JAR：${file}。请先在对应项目目录执行 ./gradlew build 生成，"
-                            + "例如：cd ${file.parentFile.parentFile.name} && ./gradlew build")
+/**
+ * 本地参考 JAR 解析（可移植，不依赖单一绝对路径）：
+ *
+ * 优先级 1) Gradle property：
+ *     -PbuildshopJar=... / -PstockmarketJar=... / -PchineseOracleJar=... / -PlcJar=...
+ *     （以及 -PserverModsDir=... 指定服务器 mods 目录）；
+ * 优先级 2) 工作区相对路径（跨仓库目录曾迁移，保留历史路径兜底）；
+ * 优先级 3) 本机服务器 mods 目录（-PserverModsDir 指定或本机已知路径）作最后兜底。
+ *
+ * 错误信息列出全部尝试过的路径与可用 property 名，便于换人/换机后自行指定；
+ * 不以用户名或固定机器路径作为唯一方案。解析的 JAR 仅用于编译/测试，绝不打包。
+ */
+
+/** 本机服务器 mods 目录（最后兜底；可通过 -PserverModsDir 覆盖）。 */
+def serverModsDir() {
+    if (project.hasProperty("serverModsDir")) {
+        def p = project.property("serverModsDir")
+        if (p && project.file(p).isDirectory()) {
+            return project.file(p)
         }
-        file
     }
+    // 本机已知服务器安装路径（最后兜底；不是唯一方案）。
+    def known = project.file(System.getProperty("user.home") + "/Desktop/Minecraft-Server/Server/mods")
+    return known.isDirectory() ? known : null
+}
+
+/** 从目录里按文件名前缀挑一个存在的 JAR（目录候选用）。 */
+def firstJarMatching(File dir, List<String> prefixes) {
+    if (dir == null || !dir.isDirectory()) {
+        return null
+    }
+    def files = dir.listFiles({ f -> f.isFile() && f.name.endsWith(".jar") } as FileFilter) ?: []
+    for (def prefix : prefixes) {
+        def hit = files.find { it.name.startsWith(prefix) }
+        if (hit != null) {
+            return hit
+        }
+    }
+    return null
+}
+
+def resolveOptionalJar(String label, List<String> propertyNames, String fallbackFileName,
+                       File dirCandidate, List<String> dirPrefixes) {
+    // 1) Gradle property
+    for (def prop : propertyNames) {
+        if (project.hasProperty(prop)) {
+            def given = (String) project.property(prop)
+            if (given && project.file(given).exists()) {
+                return project.file(given)
+            }
+        }
+    }
+    // 2) 目录候选（按前缀扫描，用于源码仓库 build/libs）
+    if (dirCandidate != null) {
+        def hit = firstJarMatching(dirCandidate, dirPrefixes)
+        if (hit != null) {
+            return hit
+        }
+    }
+    // 3) 本机服务器 mods 目录兜底
+    def modsDir = serverModsDir()
+    if (modsDir != null && fallbackFileName != null) {
+        def fallback = new File(modsDir, fallbackFileName)
+        if (fallback.exists()) {
+            return fallback
+        }
+    }
+    throw new GradleException(
+            "缺少 ${label} 参考 JAR。已尝试：" +
+                    (propertyNames ? "properties ${propertyNames.join('/')}; " : "") +
+                    (dirCandidate != null ? "目录 ${dirCandidate} 下 ${dirPrefixes.join('/')}*.jar; " : "") +
+                    (modsDir != null ? "本机服务器 mods 目录 ${modsDir}/${fallbackFileName}" : "") +
+                    "。可通过 -P${propertyNames ? propertyNames[0] : '?'}=/path/to/jar 显式指定。")
+}
+
+def businessApiJars() {
+    def buildshop = resolveOptionalJar("buildshop",
+            ["buildshopJar"], "buildshop-1.0.1.jar",
+            project.file("../buildshop-1.21.1/build/libs"), ["buildshop-"])
+    def stockmarket = resolveOptionalJar("stockmarket",
+            ["stockmarketJar"], "stockmarket-1.0.1.jar",
+            project.file("../stockmarket/build/libs"), ["stockmarket-"])
+    def chinese = resolveOptionalJar("chinese_oracle",
+            ["chineseOracleJar"], "chinese_oracle-1.0.0.jar",
+            project.file("../chinese-oracle-1.21.1/build/libs"), ["chinese_oracle-"])
+    return [buildshop, stockmarket, chinese]
+}
+
+// 服务器安装的 Lightman's Currency 参考 JAR：仅编译用（typed adapter 的 compileOnly，
+// 绝不 bundling 进发布产物）与测试用（描述符探针校验真实 API 签名）。
+def lcReferenceJar() {
+    return resolveOptionalJar("lightmanscurrency",
+            ["lcJar"], "[莱特曼货币]lightmanscurrency-1.21-2.3.0.5.jar",
+            project.file("../LightmansCurrency/build/libs"), ["lightmanscurrency-"])
 }
 
 test {

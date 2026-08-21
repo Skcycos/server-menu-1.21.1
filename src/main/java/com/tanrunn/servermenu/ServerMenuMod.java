@@ -71,6 +71,8 @@ public class ServerMenuMod {
             AppLauncherRegistry.logCompatibilitySummary();
             // 摘要能力探测与日志（与启动链路完全隔离；未接入时不做类加载探测）。
             com.tanrunn.servermenu.server.integration.summary.AppSummaryRegistry.logCompatibilitySummary();
+            // LC 经济桥接（可选依赖）：未安装 / 探针失败时保持不可用，不崩溃。
+            com.tanrunn.servermenu.server.integration.lc.LcEconomyBootstrap.bootstrap();
         }
 
         @SubscribeEvent

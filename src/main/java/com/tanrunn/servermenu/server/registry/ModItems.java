@@ -11,10 +11,10 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * server-menu 物品：Pad（tablet）。
+ * server-menu 物品：服务器服务中心终端（tablet）。
  *
- * <p>外观暂时使用原版纹理占位（echo_shard），右键行为由
- * {@link com.tanrunn.servermenu.server.hook.TabletHooks} 在服务端处理。</p>
+ * <p>右键行为由 {@link com.tanrunn.servermenu.server.hook.TabletHooks}
+ * 在服务端处理。</p>
  */
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ServerMenuMod.MODID);

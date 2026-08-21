@@ -121,6 +121,15 @@ almanac can be launched from one Pad.
     ordering="AFTER"
     side="BOTH"
 
+# Lightman's Currency 为可选依赖：仅在已安装时提供 LC 个人 ATM 银行账户经济桥接
+# （BuildShop 货币提供者 server_menu:lc_bank_main 与 StockMarket 银行 ⇄ 证券转账）。
+# 未安装 LC 时服务器正常运行、桥接保持不可用；LC JAR 绝不打包进 server-menu。
+[[dependencies.${mod_id}]]
+    modId="lightmanscurrency"
+    type="optional"
+    ordering="AFTER"
+    side="BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.
