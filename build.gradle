@@ -254,7 +254,7 @@ def resolveOptionalJar(String label, List<String> propertyNames, String fallback
 
 def businessApiJars() {
     def buildshop = resolveOptionalJar("buildshop",
-            ["buildshopJar"], "buildshop-1.0.1.jar",
+            ["buildshopJar"], "buildshop-1.0.2.jar",
             project.file("../buildshop-1.21.1/build/libs"), ["buildshop-"])
     def stockmarket = resolveOptionalJar("stockmarket",
         ["stockmarketJar"], "stockmarket-1.0.1.jar",

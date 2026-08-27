@@ -35,11 +35,11 @@ Minecraft **NeoForge 1.21.1** 服务器端统一 Pad 菜单模组。手持 Pad �
 timeout 45s ./gradlew runServer -PserverOnly --no-daemon
 ```
 
-构建产物：`build/libs/server_menu-1.0.1.jar`。
+构建产物：`build/libs/server_menu-1.0.3.jar`。
 
 ## 部署
 
-**服务端**：将 `server_menu-1.0.1.jar` 放入 `mods/`；ApricityUI 为 CLIENT 依赖可省略；业务 Mod 可选，装齐后启动日志会打印：
+**服务端**：将 `server_menu-1.0.3.jar` 放入 `mods/`；ApricityUI 为 CLIENT 依赖可省略；业务 Mod 可选，装齐后启动日志会打印：
 
 ```
 [ServerMenu] app build_shop installed=true connected=true summary=true
@@ -47,7 +47,7 @@ timeout 45s ./gradlew runServer -PserverOnly --no-daemon
 [ServerMenu] app chinese_oracle installed=true connected=true summary=true
 ```
 
-**客户端**：`server_menu-1.0.1.jar` + `ApricityUI-neoforge-1.21.1-1.2.3.1.jar` + 三个业务 Mod 的 JAR 一并放入 mods。
+**客户端**：`server_menu-1.0.3.jar` + `ApricityUI-neoforge-1.21.1-1.2.3.1.jar` + 三个业务 Mod 的 JAR 一并放入 mods。
 
 ## 使用
 
