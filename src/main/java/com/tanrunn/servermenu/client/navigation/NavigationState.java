@@ -4,7 +4,7 @@ package com.tanrunn.servermenu.client.navigation;
  * "返回 Pad"导航状态机（纯逻辑，无 Minecraft/AUI 依赖，可单测）。
  *
  * <p>跟踪当前 Screen/Document 实例（同一性比较）、AUI refreshGeneration、
- * 识别出的 {@link BusinessPage}、最近返回请求时间与"返回中"等待状态。
+ * 识别出的页面标识、最近返回请求时间与"返回中"等待状态。
  * 每 tick 由 {@link BusinessScreenNavigator} 喂入当前观察值并执行返回的动作；
  * 点击与超时恢复也由本状态机裁决，DOM 与网络效果由导航器执行。</p>
  */
@@ -33,7 +33,7 @@ final class NavigationState {
     private Object screen;
     private Object document;
     private long generation = Long.MIN_VALUE;
-    private BusinessPage page;
+    private Object page;
     private boolean returning;
     private long returningSince;
     private long lastReturnRequestAt;
@@ -45,12 +45,12 @@ final class NavigationState {
      * @param document 当前 Document（未就绪时为 null）
      * @param documentDisposed Document 已被释放
      * @param generation Document.getRefreshGeneration()
-     * @param page 由 documentPath 识别出的业务页面（未知页面为 null）
+     * @param page 由 documentPath 识别出的页面标识（未知页面为 null）
      * @param buttonPresent 当前注入的按钮元素是否仍连接在 DOM 中
      * @param nowMs 当前毫秒时间戳
      */
     Action observe(Object screen, Object document, boolean documentDisposed,
-                   long generation, BusinessPage page, boolean buttonPresent, long nowMs) {
+                   long generation, Object page, boolean buttonPresent, long nowMs) {
         if (screen != this.screen || document != this.document) {
             reset();
             if (document == null || documentDisposed || page == null) {

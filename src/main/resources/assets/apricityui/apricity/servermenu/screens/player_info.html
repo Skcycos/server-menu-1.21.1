@@ -1,0 +1,442 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="aui-font-mode" content="web">
+    <meta name="aui-viewport" content="mode=browser">
+    <meta name="aui-mouse-events" content="intercept">
+    <title>个人信息</title>
+    <style>
+        :root {
+            --paper: #f3ecdf;
+            --paper-light: #fbf8f0;
+            --paper-deep: #e8ddca;
+            --paper-line: #d6c8b1;
+            --ink: #303832;
+            --ink-muted: #77766d;
+            --jade: #3f6d60;
+            --jade-dark: #2d5147;
+            --jade-soft: #e4eee8;
+            --cinnabar: #a84f42;
+            --cinnabar-dark: #883b32;
+            --cinnabar-soft: #f2ded8;
+            --gold: #ad7b28;
+            --gold-soft: #f4e9cc;
+            --white: #fffdf8;
+            --shadow: rgba(75, 56, 33, 0.18);
+            --bezel: #43392f;
+            --bezel-dark: #332b23;
+            --bezel-edge: #6b5d4c;
+        }
+
+        * { box-sizing: border-box; }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink);
+            background:
+                linear-gradient(90deg, rgba(120, 92, 50, 0.06) 1px, transparent 1px) 0 0 / 24px 24px,
+                linear-gradient(rgba(120, 92, 50, 0.045) 1px, transparent 1px) 0 0 / 24px 24px,
+                rgba(38, 30, 21, 0.40);
+            font-family: "servermenu-ui", "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun",
+                         "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+        }
+
+        .panel {
+            display: flex;
+            width: min(1040px, calc(100vw - 48px));
+            height: min(680px, calc(100vh - 64px));
+            min-height: 0;
+            padding: 14px;
+            background: linear-gradient(160deg, var(--bezel-edge), var(--bezel) 34%, var(--bezel-dark));
+            border: 1px solid #7a6b58;
+            border-radius: 26px;
+            box-shadow: 8px 10px 0 var(--shadow);
+        }
+
+        .screen {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: var(--paper-light);
+            border: 1px solid var(--paper-line);
+            border-radius: 16px;
+        }
+
+        .head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex: 0 0 auto;
+            padding: 18px 24px 16px;
+            border-bottom: 1px solid var(--paper-line);
+        }
+
+        .head > div:first-child {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            color: var(--cinnabar);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--jade-dark);
+            font-size: 24px;
+            letter-spacing: 3px;
+        }
+
+        .head-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: min(430px, 50%);
+            flex: 0 0 auto;
+            min-width: 0;
+        }
+
+        .identity {
+            flex: 1 1 auto;
+            width: 0;
+            min-width: 0;
+            text-align: right;
+        }
+
+        .identity-name {
+            overflow: hidden;
+            color: var(--jade-dark);
+            font-size: 16px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .identity-id {
+            width: 100%;
+            margin-top: 3px;
+            overflow: hidden;
+            color: var(--ink-muted);
+            font-family: monospace;
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        button {
+            flex: 0 0 auto;
+            padding: 8px 14px;
+            color: var(--jade-dark);
+            background: var(--jade-soft);
+            border: 1px solid #9eb9a9;
+            border-radius: 3px;
+            font: inherit;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            color: #fffaf0;
+            background: var(--jade);
+        }
+
+        .content {
+            flex: 1 1 auto;
+            min-height: 0;
+            padding: 18px 24px 22px;
+            overflow-y: auto;
+        }
+
+        .location {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            color: var(--ink-muted);
+            background: var(--paper-deep);
+            border-left: 4px solid var(--cinnabar);
+            font-size: 12px;
+        }
+
+        .location strong {
+            color: var(--jade-dark);
+            font-size: 14px;
+        }
+
+        .balance-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #f7edcf 0%, #fffaf0 72%);
+            border: 1px solid #d8c496;
+            border-left: 4px solid var(--gold);
+            box-shadow: 3px 3px 0 var(--shadow);
+        }
+
+        .balance-copy {
+            min-width: 0;
+        }
+
+        .balance-label {
+            color: var(--ink-muted);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+        }
+
+        .balance-value {
+            margin-top: 4px;
+            overflow: hidden;
+            color: var(--jade-dark);
+            font-size: 24px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .balance-note {
+            margin-top: 3px;
+            overflow: hidden;
+            color: var(--ink-muted);
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .balance-mark {
+            display: grid;
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            color: #8c6a24;
+            background: #f1dfaa;
+            border: 1px solid #c6a75b;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin: 16px 0 9px;
+            color: var(--jade-dark);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .section-title::after {
+            content: "";
+            height: 1px;
+            flex: 1 1 auto;
+            background: var(--paper-line);
+        }
+
+        .hero-grid,
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .hero-card,
+        .stat-card {
+            min-width: 0;
+            padding: 13px 14px;
+            background: var(--white);
+            border: 1px solid var(--paper-line);
+            box-shadow: 3px 3px 0 var(--shadow);
+        }
+
+        .hero-card {
+            border-top: 3px solid var(--jade);
+        }
+
+        .hero-card:nth-child(2) { border-top-color: var(--gold); }
+        .hero-card:nth-child(3) { border-top-color: var(--cinnabar); }
+        .hero-card:nth-child(4) { border-top-color: #7897a5; }
+
+        .card-label {
+            color: var(--ink-muted);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            margin-top: 8px;
+            overflow: hidden;
+            color: var(--jade-dark);
+            font-size: 21px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-note {
+            margin-top: 4px;
+            overflow: hidden;
+            color: var(--ink-muted);
+            font-size: 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 58px;
+        }
+
+        .stat-card .card-value {
+            display: block;
+            flex: 0 0 auto;
+            min-width: 18px;
+            margin: 0;
+            color: var(--ink);
+            font-size: 16px;
+            text-align: right;
+        }
+
+        .footnote {
+            margin-top: 18px;
+            padding-top: 10px;
+            color: var(--ink-muted);
+            border-top: 1px solid var(--paper-line);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 760px) {
+            .panel {
+                width: calc(100vw - 24px);
+                height: calc(100vh - 24px);
+                padding: 10px;
+                border-radius: 20px;
+            }
+
+            .screen { border-radius: 12px; }
+            .head { padding: 14px 16px; }
+            .content { padding: 14px 16px 18px; }
+            .hero-grid,
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+            .head { align-items: flex-start; }
+            .head-right { width: auto; flex-direction: column; align-items: flex-end; gap: 8px; }
+            .identity { width: auto; }
+            .identity-id { max-width: 180px; }
+            .location { align-items: flex-start; flex-direction: column; gap: 4px; }
+            .hero-grid,
+            .stats-grid { grid-template-columns: minmax(0, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <div class="screen">
+            <header class="head">
+                <div>
+                    <p class="eyebrow">PERSONAL ARCHIVE · SERVER MENU</p>
+                    <h1>个人信息</h1>
+                </div>
+                <div class="head-right">
+                    <div class="identity">
+                        <div class="identity-name" id="player-name">—</div>
+                        <div class="identity-id" id="player-uuid">—</div>
+                    </div>
+                    <button id="player-info-refresh" type="button">刷新</button>
+                </div>
+            </header>
+
+            <main class="content">
+                <div class="location">
+                    <span>当前所在位置</span>
+                    <strong><span id="player-dimension">—</span> · <span id="player-position">—</span></strong>
+                </div>
+
+                <section class="balance-card">
+                    <div class="balance-copy">
+                        <div class="balance-label">个人账户 · LC BANK</div>
+                        <div class="balance-value" id="stat-balance">—</div>
+                        <div class="balance-note" id="stat-balance-note">—</div>
+                    </div>
+                    <div class="balance-mark">币</div>
+                </section>
+
+                <div class="section-title">当前状态</div>
+                <section class="hero-grid">
+                    <div class="hero-card">
+                        <div class="card-label">等级</div>
+                        <div class="card-value" id="stat-level">—</div>
+                        <div class="card-note">经验 <span id="stat-experience">—</span></div>
+                    </div>
+                    <div class="hero-card">
+                        <div class="card-label">生命</div>
+                        <div class="card-value" id="stat-health">—</div>
+                        <div class="card-note">当前 / 最大生命值</div>
+                    </div>
+                    <div class="hero-card">
+                        <div class="card-label">饥饿</div>
+                        <div class="card-value" id="stat-hunger">—</div>
+                        <div class="card-note">饱食度 · 饱和度</div>
+                    </div>
+                    <div class="hero-card">
+                        <div class="card-label">游戏时间</div>
+                        <div class="card-value" id="stat-play-time">—</div>
+                        <div class="card-note">原版统计记录</div>
+                    </div>
+                </section>
+
+                <div class="section-title">生存档案</div>
+                <section class="stats-grid">
+                    <div class="stat-card"><div class="card-label">所在世界天数</div><div class="card-value" id="stat-world-days">—</div></div>
+                    <div class="stat-card"><div class="card-label">死亡次数</div><div class="card-value" id="stat-deaths">—</div></div>
+                    <div class="stat-card"><div class="card-label">生物击杀</div><div class="card-value" id="stat-mob-kills">—</div></div>
+                    <div class="stat-card"><div class="card-label">玩家击杀</div><div class="card-value" id="stat-player-kills">—</div></div>
+                    <div class="stat-card"><div class="card-label">跳跃次数</div><div class="card-value" id="stat-jumps">—</div></div>
+                    <div class="stat-card"><div class="card-label">移动距离</div><div class="card-value" id="stat-walk-distance">—</div></div>
+                    <div class="stat-card"><div class="card-label">挖掘方块</div><div class="card-value" id="stat-blocks-mined">—</div></div>
+                    <div class="stat-card"><div class="card-label">总经验</div><div class="card-value" id="stat-total-experience">—</div></div>
+                </section>
+
+                <div class="footnote">数据来自服务器当前存档与 Minecraft 原版统计；点击刷新可重新获取最新状态。</div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

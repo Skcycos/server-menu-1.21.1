@@ -47,6 +47,11 @@ public final class AppSummaryRegistry {
                 "com.tanrunn.chineseoracle.api.ChineseOracleApi",
                 "summary",
                 "com.tanrunn.chineseoracle.api.AlmanacSummary"));
+        DESCRIPTORS.put(MenuApp.TERRITORY.id(), new SummaryDescriptor(
+                "com.tanrunn.servermenu.server.integration.summary.territory.TerritorySummaryProvider",
+                "com.tanrunn.servermenu.server.integration.summary.territory.TerritorySummaryApi",
+                "summary",
+                "com.tanrunn.servermenu.server.integration.summary.AppCardSummary"));
     }
 
     /** 摘要兼容性探测结果缓存（appId → 可用）；与启动链路 COMPAT_CACHE 完全隔离。 */

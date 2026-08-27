@@ -39,6 +39,9 @@ public class ServerMenuMod {
 
         ModItems.ITEMS.register(modEventBus);
         ModItems.TABS.register(modEventBus);
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
+                com.tanrunn.servermenu.server.TerritoryShopConfig.SPEC,
+                "server-menu-territory.toml");
 
         // ServerMenuMod 自身没有 @SubscribeEvent 方法，不能注册到 EVENT_BUS；
         // 命令与退出清理由 @EventBusSubscriber 的 ServerEvents 负责。

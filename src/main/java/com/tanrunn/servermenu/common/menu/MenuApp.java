@@ -14,7 +14,8 @@ import java.util.Optional;
 public enum MenuApp {
     BUILD_SHOP("build_shop", "buildshop", "建筑商店", "建材采购与库存"),
     STOCK_MARKET("stock_market", "stockmarket", "股市", "行情、持仓与交易"),
-    CHINESE_ORACLE("chinese_oracle", "chinese_oracle", "今日黄历", "今日宜忌与运势");
+    CHINESE_ORACLE("chinese_oracle", "chinese_oracle", "今日黄历", "今日宜忌与运势"),
+    TERRITORY("territory", "openpartiesandclaims", "领地系统", "领地、队伍与区块管理");
 
     /** 内置应用全集（稳定顺序，快照按此顺序下发）。 */
     public static final List<MenuApp> ALL = List.of(values());

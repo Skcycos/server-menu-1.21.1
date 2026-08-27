@@ -83,9 +83,10 @@ class BusinessPageTest {
     }
 
     @Test
-    void everyMenuAppHasExactlyOneBusinessPage() {
-        // 反向一一对应：每个内置 MenuApp 恰好映射一个业务页面。
-        for (MenuApp app : MenuApp.ALL) {
+    void everyAuiMenuAppHasExactlyOneBusinessPage() {
+        // 只有 AUI 业务页进入 BusinessPage；OAPC 使用原生 Screen，不属于该集合。
+        for (MenuApp app : new MenuApp[]{MenuApp.BUILD_SHOP, MenuApp.STOCK_MARKET,
+                MenuApp.CHINESE_ORACLE}) {
             long count = BusinessPage.ALL.stream().filter(page -> page.app() == app).count();
             assertEquals(1, count, "MenuApp " + app.id() + " 应恰好对应一个业务页面");
         }

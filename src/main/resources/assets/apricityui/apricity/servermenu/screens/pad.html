@@ -125,33 +125,89 @@
             color: var(--paper-line);
         }
 
-        /* 三张应用卡片横向排列 */
+        /* 应用卡片：优先保证卡片宽度，空间不足时自动换行 */
         .apps {
             display: flex;
+            flex-wrap: wrap;
+            align-content: center;
             align-items: stretch;
             justify-content: center;
-            gap: 18px;
+            gap: 16px;
             flex: 1 1 auto;
             min-height: 0;
             padding: 26px 28px 12px;
+            overflow-y: auto;
         }
 
         .app-card {
+            position: relative;
             display: flex;
-            flex: 1 1 0;
+            flex: 1 1 calc(33.333% - 11px);
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
             min-width: 0;
-            min-height: 0;
-            padding: 18px 14px;
+            max-width: calc(33.333% - 11px);
+            min-height: 190px;
+            padding: 24px 16px 18px;
             color: var(--ink);
             background: var(--white);
             border: 1px solid var(--paper-line);
-            border-top: 4px solid var(--jade);
             box-shadow: 4px 4px 0 var(--shadow);
             cursor: pointer;
             transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+        }
+
+        /* 顶部装饰统一尺寸，只用颜色区分不同应用。 */
+        .app-card::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            right: 0;
+            left: 0;
+            height: 6px;
+            background: var(--card-ribbon, var(--jade));
+        }
+
+        .app-card::after {
+            content: "";
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            left: 14px;
+            height: 1px;
+            background: var(--card-rule, rgba(63, 109, 96, 0.22));
+        }
+
+        .app-card[data-app='build_shop'] {
+            --card-ribbon: var(--cinnabar);
+            --card-rule: #d58c80;
+            --seal-border: var(--cinnabar-dark);
+        }
+
+        .app-card[data-app='stock_market'] {
+            --card-ribbon: var(--gold);
+            --card-rule: var(--gold);
+            --seal-border: #815a18;
+        }
+
+        .app-card[data-app='chinese_oracle'] {
+            --card-ribbon: var(--jade);
+            --card-rule: #7da89a;
+            --seal-border: var(--jade-dark);
+        }
+
+        .app-card[data-app='territory'] {
+            --card-ribbon: #5b7f8f;
+            --card-rule: #5b7f8f;
+            --seal-border: #3f5f6c;
+        }
+
+        .profile-card {
+            --card-ribbon: #8064a2;
+            --card-rule: #8064a2;
+            --seal-border: #5d467d;
         }
 
         .app-card:hover {
@@ -162,11 +218,33 @@
 
         .app-card:active { transform: translate(1px, 1px); }
 
+        .profile-card:hover {
+            border-color: #d2a49a;
+        }
+
+        .app-card .seal {
+            background: var(--card-ribbon, var(--cinnabar));
+            border-color: var(--seal-border, var(--cinnabar-dark));
+        }
+
+        .profile-action {
+            margin-top: 14px;
+            padding: 5px 12px;
+            color: var(--cinnabar-dark);
+            background: var(--cinnabar-soft);
+            border: 1px solid #ddb5ab;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
         /* 未安装：明显降级 */
         .app-card.missing {
             opacity: 0.55;
-            border-top-color: var(--ink-light);
             cursor: not-allowed;
+        }
+
+        .app-card.missing::before {
+            filter: grayscale(0.75);
         }
 
         .app-card.missing:hover {
@@ -251,6 +329,7 @@
         }
 
         .app-state.connected {
+            display: none;
             color: #fffaf0;
             background: var(--jade);
             border-color: var(--jade-dark);
@@ -283,6 +362,14 @@
 
         .app-summary.hidden {
             display: none;
+        }
+
+        .app-card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-width: 0;
         }
 
         /* 状态提示区域 */
@@ -355,8 +442,14 @@
             .screen { border-radius: 12px; }
 
             .apps {
-                gap: 10px;
+                gap: 12px;
                 padding: 18px 14px 8px;
+            }
+
+            .app-card {
+                flex-basis: calc(50% - 6px);
+                max-width: calc(50% - 6px);
+                min-height: 180px;
             }
 
             .pad-head { padding: 10px 16px; }
@@ -366,16 +459,15 @@
         @media (max-width: 560px) {
             /* 小窗口：卡片纵向堆叠，保证不出屏 */
             .apps {
-                flex-direction: column;
-                justify-content: center;
+                align-content: start;
             }
 
             .app-card {
-                flex: 0 0 auto;
+                flex-basis: 100%;
                 flex-direction: row;
                 gap: 14px;
                 justify-content: flex-start;
-                width: 100%;
+                max-width: 100%;
                 padding: 10px 16px;
             }
 
@@ -447,6 +539,27 @@
                         <div id="app-summary-chinese_oracle-0" class="app-summary"></div>
                         <div id="app-summary-chinese_oracle-1" class="app-summary"></div>
                         <div id="app-summary-chinese_oracle-2" class="app-summary"></div>
+                    </div>
+                </div>
+
+                <div class="app-card" data-app="territory">
+                    <div class="seal">领</div>
+                    <div class="app-card-body">
+                        <div class="app-name">领地系统</div>
+                        <div class="app-subtitle">领地、队伍与区块管理</div>
+                        <div id="app-state-territory" class="app-state pending">待接入</div>
+                        <div id="app-summary-territory-0" class="app-summary"></div>
+                        <div id="app-summary-territory-1" class="app-summary"></div>
+                        <div id="app-summary-territory-2" class="app-summary"></div>
+                    </div>
+                </div>
+
+                <div class="app-card profile-card" data-action="open_player_info">
+                    <div class="seal">人</div>
+                    <div class="app-card-body">
+                        <div class="app-name">个人信息</div>
+                        <div class="app-subtitle">状态、经历与生存统计</div>
+                        <div class="profile-action">查看档案</div>
                     </div>
                 </div>
             </main>

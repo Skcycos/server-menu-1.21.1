@@ -5,6 +5,8 @@ import com.tanrunn.servermenu.common.menu.MenuApp;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.AppStatus;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuFeedbackPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuSnapshotPayload;
+import com.tanrunn.servermenu.common.network.ServerMenuNetwork.PlayerInfoPayload;
+import com.tanrunn.servermenu.common.network.ServerMenuNetwork.TerritoryInfoPayload;
 import com.tanrunn.servermenu.server.integration.AppLaunchResult;
 import com.tanrunn.servermenu.server.integration.AppLauncherRegistry;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -68,6 +70,20 @@ public final class MenuService {
         });
     }
 
+    /** C2S 个人信息页请求：沿用打开冷却并下发服务端权威统计快照。 */
+    public void handleOpenPlayerInfoRequest(ServerPlayer player) {
+        runOnServerThread(player, () -> {
+            if (!requestCooldowns.tryAcquireOpen(player.getUUID(), System.currentTimeMillis())) {
+                sendFeedback(player, "操作太频繁，请稍后再试。", true);
+                return;
+            }
+            if (!isReachable(player, PlayerInfoPayload.TYPE)) {
+                return;
+            }
+            PacketDistributor.sendToPlayer(player, PlayerInfoService.snapshot(player));
+        });
+    }
+
     /**
      * C2S 启动应用请求：启动冷却 → 白名单解析 → 安装检查 → 适配器启动。
      * 成功时业务 S2C 包会自然打开对应页面，不发送额外反馈。
@@ -83,6 +99,10 @@ public final class MenuService {
                 sendFeedback(player, "未知应用，请求已被拒绝。", true);
                 return;
             }
+            if (app == MenuApp.TERRITORY) {
+                openTerritoryPage(player, "", false);
+                return;
+            }
             AppLaunchResult result = AppLauncherRegistry.launch(app, player);
             if (result.success()) {
                 // 业务页面随后由业务 Mod 的 S2C 包打开，Pad 自然被替换。
@@ -90,6 +110,51 @@ public final class MenuService {
             }
             sendFeedback(player, result.userMessage(), result.error());
         });
+    }
+
+    public void handleRefreshTerritory(ServerPlayer player) {
+        runOnServerThread(player, () -> {
+            if (!requestCooldowns.tryAcquireOpen(player.getUUID(), System.currentTimeMillis())) {
+                return;
+            }
+            openTerritoryPage(player, "", false);
+        });
+    }
+
+    public void handlePurchaseTerritory(ServerPlayer player) {
+        runOnServerThread(player, () -> {
+            if (!requestCooldowns.tryAcquireLaunch(player.getUUID(), System.currentTimeMillis())) {
+                return;
+            }
+            TerritoryService.PurchaseResult result = TerritoryService.purchase(player);
+            openTerritoryPage(player, result.message(), result.error());
+        });
+    }
+
+    public void handleOpenOapc(ServerPlayer player) {
+        runOnServerThread(player, () -> {
+            if (!requestCooldowns.tryAcquireLaunch(player.getUUID(), System.currentTimeMillis())) {
+                return;
+            }
+            AppLaunchResult result = AppLauncherRegistry.launch(MenuApp.TERRITORY, player);
+            if (!result.success()) {
+                sendFeedback(player, result.userMessage(), true);
+            }
+        });
+    }
+
+    private void openTerritoryPage(ServerPlayer player, String message, boolean error) {
+        if (!isReachable(player, TerritoryInfoPayload.TYPE)) {
+            return;
+        }
+        TerritoryInfoPayload base = TerritoryService.snapshot(player);
+        TerritoryInfoPayload payload = message == null || message.isBlank()
+                ? base
+                : new TerritoryInfoPayload(base.oapcAvailable(), base.luckPermsAvailable(),
+                base.economyAvailable(), base.claimsHeld(), base.claimLimit(),
+                base.purchasedClaims(), base.maxPurchasable(), base.claimPrice(),
+                base.balanceMinorUnits(), base.currency(), base.permissionNode(), message, error);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     /** 玩家退出：清理两个冷却状态。 */

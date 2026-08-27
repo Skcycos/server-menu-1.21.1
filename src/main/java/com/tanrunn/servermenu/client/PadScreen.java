@@ -10,6 +10,7 @@ import com.tanrunn.servermenu.common.network.ServerMenuNetwork.AppStatus;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.LaunchAppRequestPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuFeedbackPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuSnapshotPayload;
+import com.tanrunn.servermenu.common.network.ServerMenuNetwork.OpenPlayerInfoRequestPayload;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -31,6 +32,7 @@ import java.util.Locale;
  */
 public final class PadScreen extends ApricityScreen {
     public static final String TEMPLATE_PATH = "servermenu/screens/pad.html";
+    private static final String OPEN_PLAYER_INFO_ACTION = "open_player_info";
 
     private static final String WELCOME_MESSAGE = "欢迎使用服务器服务中心，请选择要进入的应用。";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ROOT);
@@ -259,6 +261,11 @@ public final class PadScreen extends ApricityScreen {
     private void onCardClick(Event event) {
         Element target = event.target instanceof Element element ? element : null;
         if (target == null) {
+            return;
+        }
+        Element actionCard = walkUp(target, "data-action");
+        if (actionCard != null && OPEN_PLAYER_INFO_ACTION.equals(actionCard.getAttribute("data-action"))) {
+            PacketDistributor.sendToServer(new OpenPlayerInfoRequestPayload());
             return;
         }
         Element card = walkUp(target, "data-app");

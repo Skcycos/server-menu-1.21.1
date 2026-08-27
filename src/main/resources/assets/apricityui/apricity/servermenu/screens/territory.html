@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="aui-font-mode" content="web">
+    <meta name="aui-viewport" content="mode=browser">
+    <meta name="aui-mouse-events" content="intercept">
+    <title>领地服务</title>
+    <style>
+        :root {
+            --paper: #f3ecdf;
+            --paper-light: #fbf8f0;
+            --paper-deep: #e8ddca;
+            --paper-line: #d6c8b1;
+            --ink: #303832;
+            --ink-muted: #77766d;
+            --jade: #3f6d60;
+            --jade-dark: #2d5147;
+            --jade-soft: #e4eee8;
+            --cinnabar: #a84f42;
+            --cinnabar-dark: #883b32;
+            --cinnabar-soft: #f2ded8;
+            --gold: #ad7b28;
+            --gold-soft: #f4e9cc;
+            --white: #fffdf8;
+            --shadow: rgba(75, 56, 33, 0.18);
+            --bezel: #43392f;
+            --bezel-dark: #332b23;
+            --bezel-edge: #6b5d4c;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; min-height: 0; overflow: hidden; }
+        body {
+            display: flex; align-items: center; justify-content: center; color: var(--ink);
+            background: rgba(38, 30, 21, 0.40);
+            font-family: "servermenu-ui", "Noto Serif CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+        }
+        .pad {
+            display: flex; width: min(940px, calc(100vw - 48px)); height: min(600px, calc(100vh - 64px));
+            min-height: 0; padding: 14px; background: linear-gradient(160deg, var(--bezel-edge), var(--bezel) 34%, var(--bezel-dark));
+            border: 1px solid #7a6b58; border-radius: 26px; box-shadow: 8px 10px 0 var(--shadow);
+        }
+        .screen { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden;
+            background: var(--paper-light); border: 1px solid var(--paper-line); border-radius: 16px; }
+        .head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 24px;
+            border-bottom: 1px solid var(--paper-line); }
+        .eyebrow { margin: 0 0 4px; color: var(--cinnabar); font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+        h1 { margin: 0; color: var(--jade-dark); font-size: 24px; letter-spacing: 3px; }
+        .head-buttons, .actions { display: flex; gap: 8px; }
+        button { padding: 8px 13px; color: var(--jade-dark); background: var(--jade-soft); border: 1px solid #9eb9a9;
+            font: inherit; cursor: pointer; }
+        button:hover { background: #d5e7dc; }
+        main { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; padding: 18px 24px 12px; }
+        .intro { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 14px;
+            color: var(--jade-dark); background: var(--paper-deep); border-left: 4px solid var(--cinnabar); }
+        .intro strong { font-size: 18px; }
+        .intro span { color: var(--ink-muted); font-size: 12px; }
+        .section-title { display: flex; align-items: center; gap: 12px; margin: 16px 0 9px; color: var(--jade-dark); font-weight: 700; letter-spacing: 1px; }
+        .section-title::after { content: ""; height: 1px; flex: 1; background: var(--paper-line); }
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .stat { min-width: 0; padding: 12px 13px; background: var(--white); border: 1px solid var(--paper-line); border-top: 3px solid var(--jade); box-shadow: 3px 3px 0 var(--shadow); }
+        .stat:nth-child(2) { border-top-color: var(--gold); }
+        .stat:nth-child(3) { border-top-color: var(--cinnabar); }
+        .stat:nth-child(4) { border-top-color: #7898a6; }
+        .label { color: var(--ink-muted); font-size: 12px; }
+        .value { margin-top: 7px; overflow: hidden; color: var(--jade-dark); font-size: 21px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .note { margin-top: 4px; color: var(--ink-light, #9b988d); font-size: 11px; }
+        .purchase { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px;
+            background: var(--gold-soft); border: 1px solid #e3d3ad; }
+        .purchase-copy { min-width: 0; }
+        .purchase-copy strong { display: block; color: var(--cinnabar-dark); font-size: 16px; }
+        .purchase-copy span { display: block; margin-top: 5px; color: var(--ink-muted); font-size: 12px; }
+        .purchase button { color: #fffaf0; background: var(--cinnabar); border-color: var(--cinnabar-dark); font-weight: 700; }
+        .purchase button:hover { background: var(--cinnabar-dark); }
+        .status-bar { margin-top: 13px; padding: 8px 12px; color: var(--jade-dark); background: var(--jade-soft);
+            border: 1px solid #9eb9a9; font-size: 12px; text-align: center; }
+        .status-bar.error { color: var(--cinnabar-dark); background: var(--cinnabar-soft); border-color: #d7a79d; }
+        footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 8px 24px;
+            color: #9b988d; background: var(--paper-deep); border-top: 1px solid var(--paper-line); font-size: 12px; }
+        footer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 650px) {
+            .pad { width: calc(100vw - 24px); height: calc(100vh - 24px); padding: 10px; }
+            main { padding: 14px 14px 10px; }
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .head { padding: 12px 16px; }
+            .head-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="pad"><div class="screen" id="territory-root">
+    <header class="head">
+        <div><p class="eyebrow">TERRITORY SERVICE · OAPC</p><h1>领地服务</h1></div>
+        <div class="head-buttons"><button data-action="refresh" id="territory-refresh">刷新</button><button data-action="back">返回服务中心</button></div>
+    </header>
+    <main id="territory-actions">
+        <div class="intro"><strong>Open Parties and Claims</strong><span>当前权限节点：<span id="territory-node">—</span></span></div>
+        <div class="section-title">领地数据</div>
+        <div class="stats">
+            <div class="stat"><div class="label">当前持有</div><div class="value" id="territory-claim-count">—</div><div class="note">已占用区块</div></div>
+            <div class="stat"><div class="label">当前上限</div><div class="value" id="territory-claim-limit">—</div><div class="note">OAPC 有效上限</div></div>
+            <div class="stat"><div class="label">已购买次数</div><div class="value" id="territory-purchased">—</div><div class="note">本商店累计</div></div>
+            <div class="stat"><div class="label">最多还可购买</div><div class="value" id="territory-remaining">—</div><div class="note">服务端配置上限</div></div>
+        </div>
+        <div class="section-title">领地扩展</div>
+        <div class="purchase">
+            <div class="purchase-copy"><strong>购买 1 个领地上限</strong><span>价格：<span id="territory-price">—</span> · 当前余额：<span id="territory-balance">—</span></span></div>
+            <button data-action="purchase">购买领地</button>
+        </div>
+        <div class="status-bar info" id="territory-status">数据加载中…</div>
+    </main>
+    <footer><span>购买后将通过 LuckPerms 同步 OAPC 的 xaero.pac_max_claims 数值</span><button data-action="open_oapc">打开 OAPC 领地界面</button></footer>
+</div></div>
+</body>
+</html>

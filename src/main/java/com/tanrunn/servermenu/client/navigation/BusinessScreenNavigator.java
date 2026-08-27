@@ -5,6 +5,7 @@ import com.sighs.apricityui.init.Document;
 import com.sighs.apricityui.init.Element;
 import com.sighs.apricityui.screen.ApricityScreen;
 import com.tanrunn.servermenu.ServerMenuMod;
+import com.tanrunn.servermenu.client.PlayerInfoScreen;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.OpenMenuRequestPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,7 +21,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * <p>每个客户端 tick 检查 {@link Minecraft#getScreen()}：只处理
  * {@link ApricityScreen}，通过 {@link ApricityScreen#getLinkedDocument()} 取得
  * Document，用 {@link BusinessPage#fromDocumentPath(String)} 按精确逻辑路径
- * 白名单识别建筑商店/股市/黄历页面，并向 document.body 注入固定 ID 的
+ * 白名单识别建筑商店/股市/黄历/个人信息页面，并向 document.body 注入固定 ID 的
  * "返回 Pad"按钮（top layer，位于业务内容上方）。</p>
  *
  * <p>AUI 刷新会重建 DOM：本类按 Document 实例 + {@link Document#getRefreshGeneration()}
@@ -35,7 +36,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 @EventBusSubscriber(modid = ServerMenuMod.MODID, value = Dist.CLIENT)
 public final class BusinessScreenNavigator {
-    /** 固定按钮 ID：唯一由本类定义；三个业务页面与 Pad 模板均不得包含。 */
+    /** 固定按钮 ID：唯一由本类定义；业务页面、个人信息页与 Pad 模板均不得包含。 */
     public static final String RETURN_BUTTON_ID = "server-menu-return-pad";
     /** 固定按钮 class。 */
     public static final String RETURN_BUTTON_CLASS = "server-menu-return-pad";
@@ -62,7 +63,7 @@ public final class BusinessScreenNavigator {
         ApricityScreen apricityScreen = screen instanceof ApricityScreen a ? a : null;
         Document doc = apricityScreen == null ? null : apricityScreen.getLinkedDocument();
         boolean disposed = doc != null && doc.isDisposed();
-        BusinessPage page = doc == null ? null : BusinessPage.fromDocumentPath(doc.getPath()).orElse(null);
+        Object page = pageFor(doc);
         long generation = doc == null ? Long.MIN_VALUE : doc.getRefreshGeneration();
         boolean buttonPresent = buttonElement != null && buttonElement.isConnected();
 
@@ -84,6 +85,17 @@ public final class BusinessScreenNavigator {
                 // 点击动作由点击监听器直接执行，tick 不处理。
             }
         }
+    }
+
+    private static Object pageFor(Document doc) {
+        if (doc == null) {
+            return null;
+        }
+        BusinessPage businessPage = BusinessPage.fromDocumentPath(doc.getPath()).orElse(null);
+        if (businessPage != null) {
+            return businessPage;
+        }
+        return PlayerInfoScreen.isTemplatePath(doc.getPath()) ? PlayerInfoScreen.TEMPLATE_PATH : null;
     }
 
     // ------------------------------------------------------------------ DOM

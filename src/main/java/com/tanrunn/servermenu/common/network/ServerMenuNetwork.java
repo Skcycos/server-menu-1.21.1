@@ -36,10 +36,24 @@ public final class ServerMenuNetwork {
     public static void register(PayloadRegistrar registrar) {
         registrar.playToClient(MenuSnapshotPayload.TYPE, MenuSnapshotPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleSnapshot);
+        registrar.playToClient(PlayerInfoPayload.TYPE, PlayerInfoPayload.STREAM_CODEC,
+                ClientPayloadHandler::handlePlayerInfo);
+        registrar.playToClient(OpenTerritoryPayload.TYPE, OpenTerritoryPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleOpenTerritory);
+        registrar.playToClient(TerritoryInfoPayload.TYPE, TerritoryInfoPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleTerritoryInfo);
         registrar.playToClient(MenuFeedbackPayload.TYPE, MenuFeedbackPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleFeedback);
         registrar.playToServer(OpenMenuRequestPayload.TYPE, OpenMenuRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleOpenMenu);
+        registrar.playToServer(OpenPlayerInfoRequestPayload.TYPE, OpenPlayerInfoRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleOpenPlayerInfo);
+        registrar.playToServer(RefreshTerritoryRequestPayload.TYPE, RefreshTerritoryRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleRefreshTerritory);
+        registrar.playToServer(PurchaseTerritoryRequestPayload.TYPE, PurchaseTerritoryRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handlePurchaseTerritory);
+        registrar.playToServer(OpenOapcRequestPayload.TYPE, OpenOapcRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleOpenOapc);
         registrar.playToServer(LaunchAppRequestPayload.TYPE, LaunchAppRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleLaunchApp);
     }
@@ -124,6 +138,143 @@ public final class ServerMenuNetwork {
         }
     }
 
+    /** 客户端 → 服务端：请求打开/刷新个人信息页。 */
+    public record OpenPlayerInfoRequestPayload() implements CustomPacketPayload {
+        public static final Type<OpenPlayerInfoRequestPayload> TYPE = new Type<>(id("open_player_info_request"));
+        public static final StreamCodec<FriendlyByteBuf, OpenPlayerInfoRequestPayload> STREAM_CODEC =
+                StreamCodec.ofMember((buf, payload) -> {
+                }, buf -> new OpenPlayerInfoRequestPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 服务端 → 客户端：通过 OAPC 客户端公开 API 打开领地系统主界面。 */
+    public record OpenTerritoryPayload() implements CustomPacketPayload {
+        public static final Type<OpenTerritoryPayload> TYPE = new Type<>(id("open_territory"));
+        public static final StreamCodec<FriendlyByteBuf, OpenTerritoryPayload> STREAM_CODEC =
+                StreamCodec.ofMember((buf, payload) -> {
+                }, buf -> new OpenTerritoryPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 服务端 → 客户端：领地服务页的服务端权威快照。 */
+    public record TerritoryInfoPayload(
+            boolean oapcAvailable,
+            boolean luckPermsAvailable,
+            boolean economyAvailable,
+            int claimsHeld,
+            int claimLimit,
+            int purchasedClaims,
+            int maxPurchasable,
+            long claimPrice,
+            long balanceMinorUnits,
+            String currency,
+            String permissionNode,
+            String message,
+            boolean messageError) implements CustomPacketPayload {
+
+        public static final int MAX_CURRENCY_LENGTH = 64;
+        public static final int MAX_PERMISSION_NODE_LENGTH = 128;
+        public static final int MAX_MESSAGE_LENGTH = 256;
+        public static final Type<TerritoryInfoPayload> TYPE = new Type<>(id("territory_info"));
+        public static final StreamCodec<FriendlyByteBuf, TerritoryInfoPayload> STREAM_CODEC =
+                StreamCodec.ofMember(TerritoryInfoPayload::write, TerritoryInfoPayload::read);
+
+        public TerritoryInfoPayload {
+            claimsHeld = Math.max(0, claimsHeld);
+            claimLimit = Math.max(0, claimLimit);
+            purchasedClaims = Math.max(0, purchasedClaims);
+            maxPurchasable = Math.max(0, maxPurchasable);
+            claimPrice = Math.max(0L, claimPrice);
+            balanceMinorUnits = Math.max(0L, balanceMinorUnits);
+            currency = bounded(currency, MAX_CURRENCY_LENGTH);
+            permissionNode = bounded(permissionNode, MAX_PERMISSION_NODE_LENGTH);
+            message = bounded(message, MAX_MESSAGE_LENGTH);
+        }
+
+        private void write(FriendlyByteBuf buf) {
+            buf.writeBoolean(oapcAvailable);
+            buf.writeBoolean(luckPermsAvailable);
+            buf.writeBoolean(economyAvailable);
+            buf.writeVarInt(claimsHeld);
+            buf.writeVarInt(claimLimit);
+            buf.writeVarInt(purchasedClaims);
+            buf.writeVarInt(maxPurchasable);
+            buf.writeVarLong(claimPrice);
+            buf.writeVarLong(balanceMinorUnits);
+            buf.writeUtf(currency, MAX_CURRENCY_LENGTH);
+            buf.writeUtf(permissionNode, MAX_PERMISSION_NODE_LENGTH);
+            buf.writeUtf(message, MAX_MESSAGE_LENGTH);
+            buf.writeBoolean(messageError);
+        }
+
+        private static TerritoryInfoPayload read(FriendlyByteBuf buf) {
+            return new TerritoryInfoPayload(
+                    buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
+                    buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                    buf.readVarLong(), buf.readVarLong(),
+                    buf.readUtf(MAX_CURRENCY_LENGTH), buf.readUtf(MAX_PERMISSION_NODE_LENGTH),
+                    buf.readUtf(MAX_MESSAGE_LENGTH),
+                    buf.readBoolean());
+        }
+
+        private static String bounded(String value, int maxLength) {
+            if (value == null) return "";
+            return value.length() <= maxLength ? value : value.substring(0, maxLength);
+        }
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 客户端 → 服务端：刷新领地服务页。 */
+    public record RefreshTerritoryRequestPayload() implements CustomPacketPayload {
+        public static final Type<RefreshTerritoryRequestPayload> TYPE = new Type<>(id("refresh_territory"));
+        public static final StreamCodec<FriendlyByteBuf, RefreshTerritoryRequestPayload> STREAM_CODEC =
+                StreamCodec.ofMember((buf, payload) -> {
+                }, buf -> new RefreshTerritoryRequestPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 客户端 → 服务端：购买一个 OAPC 领地上限。 */
+    public record PurchaseTerritoryRequestPayload() implements CustomPacketPayload {
+        public static final Type<PurchaseTerritoryRequestPayload> TYPE = new Type<>(id("purchase_territory"));
+        public static final StreamCodec<FriendlyByteBuf, PurchaseTerritoryRequestPayload> STREAM_CODEC =
+                StreamCodec.ofMember((buf, payload) -> {
+                }, buf -> new PurchaseTerritoryRequestPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** 客户端 → 服务端：请求打开 OAPC 原生领地界面。 */
+    public record OpenOapcRequestPayload() implements CustomPacketPayload {
+        public static final Type<OpenOapcRequestPayload> TYPE = new Type<>(id("open_oapc"));
+        public static final StreamCodec<FriendlyByteBuf, OpenOapcRequestPayload> STREAM_CODEC =
+                StreamCodec.ofMember((buf, payload) -> {
+                }, buf -> new OpenOapcRequestPayload());
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
     /** 服务端 → 客户端：菜单快照（应用安装/接入状态与摘要）。 */
     public record MenuSnapshotPayload(List<AppStatus> apps) implements CustomPacketPayload {
         public static final Type<MenuSnapshotPayload> TYPE = new Type<>(id("menu_snapshot"));
@@ -160,6 +311,136 @@ public final class ServerMenuNetwork {
                 apps.add(AppStatus.read(buf));
             }
             return new MenuSnapshotPayload(apps);
+        }
+    }
+
+    /** 服务端 → 客户端：当前在线玩家的个人信息与原版统计快照。 */
+    public record PlayerInfoPayload(
+            String playerName,
+            String uuid,
+            String dimension,
+            int level,
+            int totalExperience,
+            int experienceProgressPermille,
+            int healthTenths,
+            int maxHealthTenths,
+            int foodLevel,
+            int saturationTenths,
+            boolean balanceAvailable,
+            boolean balanceQuarantined,
+            long balanceMinorUnits,
+            String balanceCurrency,
+            long playTimeTicks,
+            long worldDays,
+            int deaths,
+            int mobKills,
+            int playerKills,
+            int jumps,
+            long walkDistanceCm,
+            long blocksMined,
+            int positionX,
+            int positionY,
+            int positionZ) implements CustomPacketPayload {
+
+        public static final int MAX_PLAYER_NAME_LENGTH = 64;
+        public static final int MAX_UUID_LENGTH = 64;
+        public static final int MAX_DIMENSION_LENGTH = 128;
+        public static final int MAX_BALANCE_CURRENCY_LENGTH = 64;
+        public static final int MAX_EXPERIENCE_PROGRESS_PERMILLE = 1_000;
+
+        public static final Type<PlayerInfoPayload> TYPE = new Type<>(id("player_info"));
+        public static final StreamCodec<FriendlyByteBuf, PlayerInfoPayload> STREAM_CODEC =
+                StreamCodec.ofMember(PlayerInfoPayload::write, PlayerInfoPayload::read);
+
+        public PlayerInfoPayload {
+            playerName = bounded(playerName, MAX_PLAYER_NAME_LENGTH);
+            uuid = bounded(uuid, MAX_UUID_LENGTH);
+            dimension = bounded(dimension, MAX_DIMENSION_LENGTH);
+            level = Math.max(0, level);
+            totalExperience = Math.max(0, totalExperience);
+            experienceProgressPermille = Math.max(0,
+                    Math.min(MAX_EXPERIENCE_PROGRESS_PERMILLE, experienceProgressPermille));
+            healthTenths = Math.max(0, healthTenths);
+            maxHealthTenths = Math.max(0, maxHealthTenths);
+            foodLevel = Math.max(0, foodLevel);
+            saturationTenths = Math.max(0, saturationTenths);
+            balanceMinorUnits = Math.max(0L, balanceMinorUnits);
+            balanceCurrency = bounded(balanceCurrency, MAX_BALANCE_CURRENCY_LENGTH);
+            playTimeTicks = Math.max(0L, playTimeTicks);
+            worldDays = Math.max(0L, worldDays);
+            deaths = Math.max(0, deaths);
+            mobKills = Math.max(0, mobKills);
+            playerKills = Math.max(0, playerKills);
+            jumps = Math.max(0, jumps);
+            walkDistanceCm = Math.max(0L, walkDistanceCm);
+            blocksMined = Math.max(0L, blocksMined);
+        }
+
+        private void write(FriendlyByteBuf buf) {
+            buf.writeUtf(playerName, MAX_PLAYER_NAME_LENGTH);
+            buf.writeUtf(uuid, MAX_UUID_LENGTH);
+            buf.writeUtf(dimension, MAX_DIMENSION_LENGTH);
+            buf.writeVarInt(level);
+            buf.writeVarInt(totalExperience);
+            buf.writeVarInt(experienceProgressPermille);
+            buf.writeVarInt(healthTenths);
+            buf.writeVarInt(maxHealthTenths);
+            buf.writeVarInt(foodLevel);
+            buf.writeVarInt(saturationTenths);
+            buf.writeBoolean(balanceAvailable);
+            buf.writeBoolean(balanceQuarantined);
+            buf.writeVarLong(balanceMinorUnits);
+            buf.writeUtf(balanceCurrency, MAX_BALANCE_CURRENCY_LENGTH);
+            buf.writeVarLong(playTimeTicks);
+            buf.writeVarLong(worldDays);
+            buf.writeVarInt(deaths);
+            buf.writeVarInt(mobKills);
+            buf.writeVarInt(playerKills);
+            buf.writeVarInt(jumps);
+            buf.writeVarLong(walkDistanceCm);
+            buf.writeVarLong(blocksMined);
+            buf.writeInt(positionX);
+            buf.writeInt(positionY);
+            buf.writeInt(positionZ);
+        }
+
+        private static PlayerInfoPayload read(FriendlyByteBuf buf) {
+            return new PlayerInfoPayload(
+                    buf.readUtf(MAX_PLAYER_NAME_LENGTH),
+                    buf.readUtf(MAX_UUID_LENGTH),
+                    buf.readUtf(MAX_DIMENSION_LENGTH),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readBoolean(),
+                    buf.readBoolean(),
+                    buf.readVarLong(),
+                    buf.readUtf(MAX_BALANCE_CURRENCY_LENGTH),
+                    buf.readVarLong(),
+                    buf.readVarLong(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarInt(),
+                    buf.readVarLong(),
+                    buf.readVarLong(),
+                    buf.readInt(),
+                    buf.readInt(),
+                    buf.readInt());
+        }
+
+        private static String bounded(String value, int maxLength) {
+            if (value == null) return "";
+            return value.length() <= maxLength ? value : value.substring(0, maxLength);
+        }
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
     }
 

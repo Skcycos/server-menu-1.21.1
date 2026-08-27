@@ -141,6 +141,12 @@ dependencies {
     // - 对应适配器只在确认 ModList.isLoaded 之后才通过白名单类名反射加载。
     compileOnly files(businessApiJars())
 
+    // OAPC 的公开服务端/客户端 API 仅用于编译；OAPC 仍是可选 Mod，绝不打包进产物。
+    compileOnly files(opacReferenceJar())
+
+    // LuckPerms Developer API 仅用于编译；运行时没有 LuckPerms 时购买功能自动关闭。
+    compileOnly files(luckPermsReferenceJar())
+
     // Lightman's Currency typed adapter 的编译依赖（compileOnly）：
     // - 只有 server/integration/lc 包引用 LC 类；api.economy 公共 API 绝不引用 LC；
     // - LC JAR 绝不进入 server-menu 的发布产物（compileOnly）；
@@ -175,7 +181,7 @@ configurations.testRuntimeClasspath {
  * 本地参考 JAR 解析（可移植，不依赖单一绝对路径）：
  *
  * 优先级 1) Gradle property：
- *     -PbuildshopJar=... / -PstockmarketJar=... / -PchineseOracleJar=... / -PlcJar=...
+ *     -PbuildshopJar=... / -PstockmarketJar=... / -PchineseOracleJar=... / -PlcJar=... / -PopacJar=... / -PluckPermsJar=...
  *     （以及 -PserverModsDir=... 指定服务器 mods 目录）；
  * 优先级 2) 工作区相对路径（跨仓库目录曾迁移，保留历史路径兜底）；
  * 优先级 3) 本机服务器 mods 目录（-PserverModsDir 指定或本机已知路径）作最后兜底。
@@ -251,8 +257,8 @@ def businessApiJars() {
             ["buildshopJar"], "buildshop-1.0.1.jar",
             project.file("../buildshop-1.21.1/build/libs"), ["buildshop-"])
     def stockmarket = resolveOptionalJar("stockmarket",
-            ["stockmarketJar"], "stockmarket-1.0.1.jar",
-            project.file("../stockmarket/build/libs"), ["stockmarket-"])
+        ["stockmarketJar"], "stockmarket-1.0.1.jar",
+            project.file("../stockmarket-1.21.1/build/libs"), ["stockmarket-"])
     def chinese = resolveOptionalJar("chinese_oracle",
             ["chineseOracleJar"], "chinese_oracle-1.0.0.jar",
             project.file("../chinese-oracle-1.21.1/build/libs"), ["chinese_oracle-"])
@@ -265,6 +271,20 @@ def lcReferenceJar() {
     return resolveOptionalJar("lightmanscurrency",
             ["lcJar"], "[莱特曼货币]lightmanscurrency-1.21-2.3.0.5.jar",
             project.file("../LightmansCurrency/build/libs"), ["lightmanscurrency-"])
+}
+
+// 服务器安装的 Open Parties and Claims 参考 JAR：仅编译用，绝不进入发布产物。
+def opacReferenceJar() {
+    return resolveOptionalJar("openpartiesandclaims",
+            ["opacJar"], "open-parties-and-claims-neoforge-1.21.1-0.29.3.jar",
+            project.file("../OpenPartiesAndClaims/NeoForge/build/libs"), ["open-parties-and-claims-neoforge-"])
+}
+
+// LuckPerms Developer API 参考 JAR：仅编译用，绝不进入发布产物。
+def luckPermsReferenceJar() {
+    return resolveOptionalJar("luckperms",
+            ["luckPermsJar"], "LuckPerms-NeoForge-5.4.150.jar",
+            project.file("../LuckPerms/build/libs"), ["LuckPerms-"])
 }
 
 test {
@@ -321,11 +341,15 @@ idea {
     }
 }
 
-// ApricityUI 是客户端 mod：dev 环境的 runServer 会把 AUI 放进运行时 classpath 导致专用服务器加载失败。
-// prepareServerRun 之后移除 run/mods 中的 AUI jar（生产服务器不会发生同步，无影响）。
+// ApricityUI 是客户端 mod：专用服务端运行时不能加载它，但客户端运行仍需要它。
+// 只有显式使用 -PserverOnly 时才从 run/mods 移除，避免 runClient 被破坏。
 tasks.named('prepareServerRun').configure {
     def modsDir = layout.projectDirectory.dir('run/mods').asFile
+    def serverOnlyRun = project.hasProperty('serverOnly')
     doLast {
+        if (!serverOnlyRun) {
+            return
+        }
         modsDir.listFiles()?.each { f ->
             if (f.name.startsWith('ApricityUI-')) {
                 f.delete()

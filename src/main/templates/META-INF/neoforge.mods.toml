@@ -48,10 +48,10 @@ displayName="${mod_name}" #mandatory
 description='''
 服务器 Pad 菜单 (Server Menu) — 服务器内统一 Pad 菜单模组。
 手持 Pad 物品或执行 /servermenu（别名 /pad）打开 AUI 渲染的主界面；
-建筑商店、股市和黄历均可从统一 Pad 打开。
+建筑商店、股市、黄历和 OAPC 领地系统均可从统一 Pad 打开。
 Server-side unified Pad menu rendered with ApricityUI. Open the Pad item or
-use /servermenu (alias /pad); building shop, stock market and the Chinese
-almanac can be launched from one Pad.
+use /servermenu (alias /pad); building shop, stock market, the Chinese
+almanac and Open Parties and Claims can be launched from one Pad.
 '''
 
 # If this block is omitted, a fallback attempt will be made to load an AT from META-INF/accesstransformer.cfg
@@ -120,6 +120,18 @@ almanac can be launched from one Pad.
     versionRange="[1.0.0,)"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="openpartiesandclaims"
+    type="optional"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="luckperms"
+    type="optional"
+    ordering="AFTER"
+    side="SERVER"
 
 # Lightman's Currency 为可选依赖：仅在已安装时提供 LC 个人 ATM 银行账户经济桥接
 # （BuildShop 货币提供者 server_menu:lc_bank_main 与 StockMarket 银行 ⇄ 证券转账）。

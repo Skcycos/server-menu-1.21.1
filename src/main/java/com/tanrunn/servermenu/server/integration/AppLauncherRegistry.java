@@ -45,6 +45,10 @@ public final class AppLauncherRegistry {
                 "com.tanrunn.servermenu.server.integration.oracle.ChineseOracleLauncher",
                 "com.tanrunn.chineseoracle.api.ChineseOracleApi",
                 "openAlmanac", boolean.class));
+        DESCRIPTORS.put(MenuApp.TERRITORY.id(), new LauncherDescriptor(
+                "com.tanrunn.servermenu.server.integration.territory.TerritoryLauncher",
+                "com.tanrunn.servermenu.server.integration.territory.TerritoryServerBridge",
+                "isAvailable", boolean.class));
     }
 
     /** 兼容性探测结果缓存（appId → 可用）。探测失败只记一次日志。 */

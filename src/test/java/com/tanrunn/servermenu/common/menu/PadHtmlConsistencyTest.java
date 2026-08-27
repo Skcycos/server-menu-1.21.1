@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -79,6 +80,15 @@ class PadHtmlConsistencyTest {
                     "pad.html 状态元素含未知文案：" + text);
         }
         assertTrue(foundAny, "pad.html 中未找到任何 app-state 文案");
+    }
+
+    @Test
+    void personalInfoCardUsesTheDedicatedServerMenuAction() throws IOException {
+        String html = loadPadHtml();
+        assertEquals(1, countOccurrences(html, "data-action=\"open_player_info\""));
+        assertTrue(html.contains("个人信息"));
+        assertFalse(html.contains("data-app=\"personal_info\""),
+                "个人信息不是外部业务 Mod，不应混入业务 app 白名单");
     }
 
     private static String loadPadHtml() throws IOException {
