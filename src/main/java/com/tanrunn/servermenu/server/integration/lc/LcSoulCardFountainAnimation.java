@@ -6,8 +6,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -28,8 +30,10 @@ public final class LcSoulCardFountainAnimation {
     private LcSoulCardFountainAnimation() {
     }
 
-    public static boolean start(ServerLevel level, BlockPos atmPos, long copperAmount) {
-        if (level == null || atmPos == null || copperAmount <= 0) {
+    public static boolean start(ServerPlayer player, ServerLevel level, BlockPos atmPos,
+                                long copperAmount) {
+        if (player == null || level == null || atmPos == null || copperAmount <= 0
+                || player.serverLevel() != level) {
             return false;
         }
 
@@ -41,9 +45,14 @@ public final class LcSoulCardFountainAnimation {
         double x = atmPos.getX() + 0.5D;
         double y = atmPos.getY() + 1.25D;
         double z = atmPos.getZ() + 0.5D;
-        level.playSound(null, atmPos, SoundEvents.TOTEM_USE, SoundSource.BLOCKS, 0.8F, 1.0F);
-        level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, x, y, z,
-                50, 0.45D, 0.45D, 0.45D, 0.2D);
+
+        // 与原版不死图腾使用完全相同的实体事件：玩家看到屏幕中央的图腾动画，
+        // 同时播放原版音效并在玩家周围生成不死图腾粒子。
+        level.broadcastEntityEvent(player, (byte) 35);
+        level.sendParticles(ParticleTypes.END_ROD, x, y, z,
+                16, 0.2D, 0.15D, 0.2D, 0.08D);
+        level.playSound(null, atmPos, SoundEvents.EXPERIENCE_ORB_PICKUP,
+                SoundSource.BLOCKS, 0.65F, 0.75F);
 
         ACTIVE.computeIfAbsent(level.getServer(), ignored -> new ArrayList<>())
                 .add(new Animation(level, atmPos.immutable(), copperAmount, copperPrototype));
@@ -107,21 +116,20 @@ public final class LcSoulCardFountainAnimation {
         }
 
         private void spawnCopperEntities(long amount, double x, double y, double z, int second) {
-            long remaining = amount;
-            int maxStackSize = copperPrototype.getMaxStackSize();
-            int sequence = 0;
-            while (remaining > 0) {
-                int stackSize = (int) Math.min(remaining, maxStackSize);
-                ItemEntity entity = new ItemEntity(level, x, y, z,
-                        new ItemStack(copperPrototype.getItem(), stackSize));
-                double angle = (sequence++ * 2.399963229728653D) + second * 0.7D;
-                double horizontalSpeed = 0.08D + (sequence % 3) * 0.025D;
+            RandomSource random = level.getRandom();
+            for (long coin = 0; coin < amount; coin++) {
+                double angle = random.nextDouble() * Math.PI * 2.0D;
+                double spawnX = x + (random.nextDouble() - 0.5D) * 0.18D;
+                double spawnY = y + random.nextDouble() * 0.12D;
+                double spawnZ = z + (random.nextDouble() - 0.5D) * 0.18D;
+                ItemEntity entity = new ItemEntity(level, spawnX, spawnY, spawnZ,
+                        new ItemStack(copperPrototype.getItem()));
+                double horizontalSpeed = 0.10D + random.nextDouble() * 0.28D;
                 entity.setDeltaMovement(Math.cos(angle) * horizontalSpeed,
-                        0.28D + (sequence % 2) * 0.04D,
+                        0.58D + random.nextDouble() * 0.24D,
                         Math.sin(angle) * horizontalSpeed);
                 entity.setNoPickUpDelay();
                 level.addFreshEntity(entity);
-                remaining -= stackSize;
             }
         }
     }

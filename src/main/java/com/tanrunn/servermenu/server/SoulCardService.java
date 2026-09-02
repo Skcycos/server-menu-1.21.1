@@ -78,7 +78,7 @@ public final class SoulCardService {
             return;
         }
 
-        if (!startFountainAnimation(level, atmPos, copper)) {
+        if (!startFountainAnimation(player, level, atmPos, copper)) {
             player.displayClientMessage(Component.translatable(
                     "message.server_menu.soul_card.exchange_failed"), true);
             return;
@@ -89,7 +89,6 @@ public final class SoulCardService {
         markInventoryChanged(player);
         player.displayClientMessage(Component.translatable(
                 "message.server_menu.soul_card.exchanged", souls, copper), true);
-        startFountainAnimation(level, atmPos, copper);
     }
 
     static ItemStack findCarriedCard(Player player) {
@@ -153,12 +152,14 @@ public final class SoulCardService {
         }
     }
 
-    private static boolean startFountainAnimation(ServerLevel level, BlockPos atmPos, long copper) {
+    private static boolean startFountainAnimation(ServerPlayer player, ServerLevel level,
+                                                  BlockPos atmPos, long copper) {
         try {
             Class<?> animationClass = Class.forName(FOUNTAIN_CLASS, false,
                     SoulCardService.class.getClassLoader());
-            Method start = animationClass.getMethod("start", ServerLevel.class, BlockPos.class, long.class);
-            return Boolean.TRUE.equals(start.invoke(null, level, atmPos, copper));
+            Method start = animationClass.getMethod("start", ServerPlayer.class,
+                    ServerLevel.class, BlockPos.class, long.class);
+            return Boolean.TRUE.equals(start.invoke(null, player, level, atmPos, copper));
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             ServerMenuMod.LOGGER.warn("[ServerMenu] LC soul-card fountain animation unavailable", exception);
             return false;
