@@ -6,6 +6,7 @@ import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuFeedbackPaylo
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.MenuSnapshotPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.OpenTerritoryPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.PlayerInfoPayload;
+import com.tanrunn.servermenu.common.network.ServerMenuNetwork.SoulCardAnimationPayload;
 import com.tanrunn.servermenu.common.network.ServerMenuNetwork.TerritoryInfoPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -36,5 +37,14 @@ public final class ClientPayloadHandler {
 
     public static void handleFeedback(MenuFeedbackPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> PadScreen.onFeedback(payload));
+    }
+
+    public static void handleSoulCardAnimation(SoulCardAnimationPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            var minecraft = net.minecraft.client.Minecraft.getInstance();
+            if (minecraft.gameRenderer != null && !payload.item().isEmpty()) {
+                minecraft.gameRenderer.displayItemActivation(payload.item());
+            }
+        });
     }
 }

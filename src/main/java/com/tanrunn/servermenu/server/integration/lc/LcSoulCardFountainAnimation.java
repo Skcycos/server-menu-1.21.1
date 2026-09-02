@@ -1,5 +1,6 @@
 package com.tanrunn.servermenu.server.integration.lc;
 
+import com.tanrunn.servermenu.common.network.ServerMenuNetwork.SoulCardAnimationPayload;
 import com.tanrunn.servermenu.server.SoulCardService;
 import io.github.lightman314.lightmanscurrency.common.core.ModItems;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -31,9 +33,9 @@ public final class LcSoulCardFountainAnimation {
     }
 
     public static boolean start(ServerPlayer player, ServerLevel level, BlockPos atmPos,
-                                long copperAmount) {
+                                long copperAmount, ItemStack displayItem) {
         if (player == null || level == null || atmPos == null || copperAmount <= 0
-                || player.serverLevel() != level) {
+                || displayItem == null || displayItem.isEmpty() || player.serverLevel() != level) {
             return false;
         }
 
@@ -46,13 +48,16 @@ public final class LcSoulCardFountainAnimation {
         double y = atmPos.getY() + 1.25D;
         double z = atmPos.getZ() + 0.5D;
 
-        // 与原版不死图腾使用完全相同的实体事件：玩家看到屏幕中央的图腾动画，
-        // 同时播放原版音效并在玩家周围生成不死图腾粒子。
-        level.broadcastEntityEvent(player, (byte) 35);
+        // 复用原版 GameRenderer 的物品激活动画，但传递实际兑换的社保卡，
+        // 避免实体事件 35 在客户端把物品硬编码为不死图腾。
+        PacketDistributor.sendToPlayer(player,
+                new SoulCardAnimationPayload(displayItem.copyWithCount(1)));
+        level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, x, y, z,
+                30, 0.45D, 0.45D, 0.45D, 0.2D);
         level.sendParticles(ParticleTypes.END_ROD, x, y, z,
                 16, 0.2D, 0.15D, 0.2D, 0.08D);
-        level.playSound(null, atmPos, SoundEvents.EXPERIENCE_ORB_PICKUP,
-                SoundSource.BLOCKS, 0.65F, 0.75F);
+        level.playSound(null, atmPos, SoundEvents.TOTEM_USE,
+                SoundSource.BLOCKS, 0.8F, 1.0F);
 
         ACTIVE.computeIfAbsent(level.getServer(), ignored -> new ArrayList<>())
                 .add(new Animation(level, atmPos.immutable(), copperAmount, copperPrototype));

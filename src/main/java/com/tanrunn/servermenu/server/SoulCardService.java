@@ -78,7 +78,7 @@ public final class SoulCardService {
             return;
         }
 
-        if (!startFountainAnimation(player, level, atmPos, copper)) {
+        if (!startFountainAnimation(player, level, atmPos, copper, card.copyWithCount(1))) {
             player.displayClientMessage(Component.translatable(
                     "message.server_menu.soul_card.exchange_failed"), true);
             return;
@@ -153,13 +153,13 @@ public final class SoulCardService {
     }
 
     private static boolean startFountainAnimation(ServerPlayer player, ServerLevel level,
-                                                  BlockPos atmPos, long copper) {
+                                                  BlockPos atmPos, long copper, ItemStack displayItem) {
         try {
             Class<?> animationClass = Class.forName(FOUNTAIN_CLASS, false,
                     SoulCardService.class.getClassLoader());
             Method start = animationClass.getMethod("start", ServerPlayer.class,
-                    ServerLevel.class, BlockPos.class, long.class);
-            return Boolean.TRUE.equals(start.invoke(null, player, level, atmPos, copper));
+                    ServerLevel.class, BlockPos.class, long.class, ItemStack.class);
+            return Boolean.TRUE.equals(start.invoke(null, player, level, atmPos, copper, displayItem));
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             ServerMenuMod.LOGGER.warn("[ServerMenu] LC soul-card fountain animation unavailable", exception);
             return false;

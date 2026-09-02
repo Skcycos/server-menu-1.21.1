@@ -5,9 +5,11 @@ import com.tanrunn.servermenu.client.network.ClientPayloadHandler;
 import com.tanrunn.servermenu.server.ServerPayloadHandler;
 import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.ArrayList;
@@ -44,6 +46,8 @@ public final class ServerMenuNetwork {
                 ClientPayloadHandler::handleTerritoryInfo);
         registrar.playToClient(MenuFeedbackPayload.TYPE, MenuFeedbackPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleFeedback);
+        registrar.playToClient(SoulCardAnimationPayload.TYPE, SoulCardAnimationPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleSoulCardAnimation);
         registrar.playToServer(OpenMenuRequestPayload.TYPE, OpenMenuRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleOpenMenu);
         registrar.playToServer(OpenPlayerInfoRequestPayload.TYPE, OpenPlayerInfoRequestPayload.STREAM_CODEC,
@@ -482,6 +486,30 @@ public final class ServerMenuNetwork {
 
         private static MenuFeedbackPayload read(FriendlyByteBuf buf) {
             return new MenuFeedbackPayload(buf.readUtf(MAX_FEEDBACK_LENGTH), buf.readBoolean());
+        }
+    }
+
+    /** 服务端 → 客户端：用指定物品播放原版物品激活动画。 */
+    public record SoulCardAnimationPayload(ItemStack item) implements CustomPacketPayload {
+        public static final Type<SoulCardAnimationPayload> TYPE = new Type<>(id("soul_card_animation"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, SoulCardAnimationPayload> STREAM_CODEC =
+                StreamCodec.ofMember(SoulCardAnimationPayload::write, SoulCardAnimationPayload::read);
+
+        public SoulCardAnimationPayload {
+            item = item == null ? ItemStack.EMPTY : item.copy();
+        }
+
+        private void write(RegistryFriendlyByteBuf buf) {
+            ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, item);
+        }
+
+        private static SoulCardAnimationPayload read(RegistryFriendlyByteBuf buf) {
+            return new SoulCardAnimationPayload(ItemStack.OPTIONAL_STREAM_CODEC.decode(buf));
+        }
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
         }
     }
 }
