@@ -11,7 +11,7 @@ public final class FlightRingConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.LongValue CHARGE_COST_COPPER = BUILDER
-            .comment("Shift+右键修复飞行戒指1点耐久所需的LC main链铜币数量")
+            .comment("Shift+右键补满当前飞行戒指时，每缺少1点耐久所需的LC main链铜币数量")
             .defineInRange("chargeCostCopper", 1L, 1L, Long.MAX_VALUE);
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> ALLOWED_WORLDS = BUILDER

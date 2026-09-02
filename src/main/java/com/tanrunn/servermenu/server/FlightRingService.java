@@ -28,7 +28,7 @@ public final class FlightRingService {
     private FlightRingService() {
     }
 
-    /** Shift+右键手持戒指时调用；成功扣款后才修复一点原生耐久。 */
+    /** Shift+右键手持戒指时调用；成功扣款后才补满当前戒指的原生耐久。 */
     public static void charge(ServerPlayer player, InteractionHand hand) {
         if (player == null || hand == null) {
             return;
@@ -51,7 +51,13 @@ public final class FlightRingService {
             return;
         }
 
-        long cost = FlightRingConfig.CHARGE_COST_COPPER.get();
+        long cost = chargeCost(stack.getMaxDamage(), stack.getDamageValue(),
+                FlightRingConfig.CHARGE_COST_COPPER.get());
+        if (cost <= 0) {
+            player.displayClientMessage(Component.translatable(
+                    "message.server_menu.flight_ring.charge_failed"), true);
+            return;
+        }
         String requestSeed = UUID.randomUUID().toString();
         String requestId = EconomyOperationIds.generate(
                 EconomyOperationIds.FR_CHARGE,
@@ -72,8 +78,8 @@ public final class FlightRingService {
             return;
         }
 
-        // 交易成功后才改变物品，且每次只修复一点耐久。
-        stack.setDamageValue(damageAfterCharge(stack.getDamageValue()));
+        // 交易成功后才改变物品，且一次补满当前戒指全部缺少的耐久。
+        stack.setDamageValue(0);
         player.getInventory().setChanged();
         if (player.containerMenu != null) {
             player.containerMenu.broadcastChanges();
@@ -81,7 +87,8 @@ public final class FlightRingService {
         player.displayClientMessage(Component.translatable(
                 "message.server_menu.flight_ring.charged",
                 remainingDurability(stack),
-                stack.getMaxDamage()), true);
+                stack.getMaxDamage(),
+                cost), true);
     }
 
     /** 每个实际装备的戒指每 tick 调用；不访问 ATM。 */
@@ -145,8 +152,13 @@ public final class FlightRingService {
         return Math.max(0, maxDamage - damage);
     }
 
-    static int damageAfterCharge(int damage) {
-        return Math.max(0, damage - 1);
+    static long chargeCost(int maxDamage, int damage, long costPerDurability) {
+        int missingDurability = Math.max(0, Math.min(maxDamage, damage));
+        if (missingDurability == 0 || costPerDurability <= 0
+                || missingDurability > Long.MAX_VALUE / costPerDurability) {
+            return missingDurability == 0 ? 0 : -1;
+        }
+        return missingDurability * costPerDurability;
     }
 
     static int damageAfterFlight(int maxDamage, int damage) {
