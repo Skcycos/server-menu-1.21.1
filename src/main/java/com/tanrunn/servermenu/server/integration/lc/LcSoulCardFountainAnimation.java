@@ -3,12 +3,12 @@ package com.tanrunn.servermenu.server.integration.lc;
 import com.tanrunn.servermenu.server.SoulCardService;
 import io.github.lightman314.lightmanscurrency.common.core.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -28,9 +28,14 @@ public final class LcSoulCardFountainAnimation {
     private LcSoulCardFountainAnimation() {
     }
 
-    public static void start(ServerLevel level, BlockPos atmPos, long copperAmount) {
+    public static boolean start(ServerLevel level, BlockPos atmPos, long copperAmount) {
         if (level == null || atmPos == null || copperAmount <= 0) {
-            return;
+            return false;
+        }
+
+        ItemStack copperPrototype = new ItemStack(ModItems.COIN_COPPER.get());
+        if (copperPrototype.isEmpty()) {
+            return false;
         }
 
         double x = atmPos.getX() + 0.5D;
@@ -41,7 +46,8 @@ public final class LcSoulCardFountainAnimation {
                 50, 0.45D, 0.45D, 0.45D, 0.2D);
 
         ACTIVE.computeIfAbsent(level.getServer(), ignored -> new ArrayList<>())
-                .add(new Animation(level, atmPos.immutable(), copperAmount));
+                .add(new Animation(level, atmPos.immutable(), copperAmount, copperPrototype));
+        return true;
     }
 
     @SubscribeEvent
@@ -67,12 +73,14 @@ public final class LcSoulCardFountainAnimation {
         private final ServerLevel level;
         private final BlockPos atmPos;
         private final long totalCopper;
+        private final ItemStack copperPrototype;
         private int ticks;
 
-        private Animation(ServerLevel level, BlockPos atmPos, long totalCopper) {
+        private Animation(ServerLevel level, BlockPos atmPos, long totalCopper, ItemStack copperPrototype) {
             this.level = level;
             this.atmPos = atmPos;
             this.totalCopper = totalCopper;
+            this.copperPrototype = copperPrototype;
         }
 
         private boolean tick() {
@@ -91,17 +99,30 @@ public final class LcSoulCardFountainAnimation {
             double x = atmPos.getX() + 0.5D;
             double y = atmPos.getY() + 1.15D;
             double z = atmPos.getZ() + 0.5D;
-            ItemParticleOption copperParticle = new ItemParticleOption(
-                    ParticleTypes.ITEM, new ItemStack(ModItems.COIN_COPPER.get()));
-            int count = Math.toIntExact(copperThisSecond);
-            if (count > 0) {
-                level.sendParticles(copperParticle, x, y, z, count,
-                        0.35D, 0.15D, 0.35D, 0.18D);
-            }
+            spawnCopperEntities(copperThisSecond, x, y, z, second);
             level.sendParticles(ParticleTypes.END_ROD, x, y, z,
                     4, 0.25D, 0.2D, 0.25D, 0.05D);
             level.playSound(null, atmPos, SoundEvents.EXPERIENCE_ORB_PICKUP,
                     SoundSource.BLOCKS, 0.45F, 0.85F + second * 0.02F);
+        }
+
+        private void spawnCopperEntities(long amount, double x, double y, double z, int second) {
+            long remaining = amount;
+            int maxStackSize = copperPrototype.getMaxStackSize();
+            int sequence = 0;
+            while (remaining > 0) {
+                int stackSize = (int) Math.min(remaining, maxStackSize);
+                ItemEntity entity = new ItemEntity(level, x, y, z,
+                        new ItemStack(copperPrototype.getItem(), stackSize));
+                double angle = (sequence++ * 2.399963229728653D) + second * 0.7D;
+                double horizontalSpeed = 0.08D + (sequence % 3) * 0.025D;
+                entity.setDeltaMovement(Math.cos(angle) * horizontalSpeed,
+                        0.28D + (sequence % 2) * 0.04D,
+                        Math.sin(angle) * horizontalSpeed);
+                entity.setNoPickUpDelay();
+                level.addFreshEntity(entity);
+                remaining -= stackSize;
+            }
         }
     }
 

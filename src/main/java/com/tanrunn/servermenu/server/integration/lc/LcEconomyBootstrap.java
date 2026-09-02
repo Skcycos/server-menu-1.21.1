@@ -53,6 +53,7 @@ public final class LcEconomyBootstrap {
             LOGGER.info("[ServerMenu] lightmanscurrency not installed; LC economy bridge stays unavailable");
             return;
         }
+        registerSoulCardFountain(loader);
         if (!probe(loader)) {
             LOGGER.error("[ServerMenu] LC API probe failed; LC economy bridge stays unavailable "
                     + "(expected LC {} API shape)", "2.3.0.5");
@@ -67,7 +68,6 @@ public final class LcEconomyBootstrap {
         LOGGER.info("[ServerMenu] LC economy bridge registered as providerId={} chain={}",
                 provider.providerId(), provider.currencyChain());
 
-        registerSoulCardFountain(loader);
         registerBuildShop(loader, provider);
         registerStockMarket(loader, provider);
     }

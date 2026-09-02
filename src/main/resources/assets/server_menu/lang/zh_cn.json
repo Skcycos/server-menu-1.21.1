@@ -22,7 +22,5 @@
   "item.server_menu.soul_social_security_card.exchange_rule": "潜行右键 LC ATM 可兑换为铜币",
   "message.server_menu.soul_card.gained": "灵魂社保卡：灵魂 %s/%s",
   "message.server_menu.soul_card.exchanged": "已上交 %s 点灵魂，获得 %s 枚 LC 铜币",
-  "message.server_menu.soul_card.unavailable": "LC ATM当前不可用，无法兑换灵魂",
-  "message.server_menu.soul_card.quarantined": "当前世界的LC账户处于隔离状态，无法兑换灵魂",
   "message.server_menu.soul_card.exchange_failed": "灵魂兑换失败"
 }

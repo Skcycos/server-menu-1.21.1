@@ -44,9 +44,6 @@ public final class EconomyOperationIds {
     public static final String SM_ROLLBACK = "sm:rb:";
     /** 飞行戒指手动充能（每次 Shift+右键按缺少耐久一次性补满）。 */
     public static final String FR_CHARGE = "fr:ch:";
-    /** 灵魂社保卡在 ATM 兑换灵魂。 */
-    public static final String SS_CONVERT = "ss:cv:";
-
     private EconomyOperationIds() {
     }
 

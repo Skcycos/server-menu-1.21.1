@@ -23,8 +23,7 @@ class EconomyOperationIdsTest {
                 EconomyOperationIds.BS_WITHDRAW, EconomyOperationIds.BS_REFUND,
                 EconomyOperationIds.SM_BANK_DEBIT, EconomyOperationIds.SM_BANK_CREDIT,
                 EconomyOperationIds.SM_SECURITIES_DEBIT, EconomyOperationIds.SM_SECURITIES_CREDIT,
-                EconomyOperationIds.SM_ROLLBACK, EconomyOperationIds.FR_CHARGE,
-                EconomyOperationIds.SS_CONVERT}) {
+                EconomyOperationIds.SM_ROLLBACK, EconomyOperationIds.FR_CHARGE}) {
             String id = EconomyOperationIds.generate(domain, PROVIDER, "s", "t", "req-1", "d");
             assertTrue(id.length() <= EconomyOperationIds.MAX_LENGTH,
                     domain + " 长度超限: " + id + " (" + id.length() + ")");
@@ -120,13 +119,4 @@ class EconomyOperationIdsTest {
         assertNotEquals(charge, stockMarket);
     }
 
-    @Test
-    void soulCardExchangeUsesItsOwnDomain() {
-        String conversion = EconomyOperationIds.generate(EconomyOperationIds.SS_CONVERT, PROVIDER,
-                "server_menu:soul_social_security_card", "exchange_souls", "same", "");
-        String flightRing = EconomyOperationIds.generate(EconomyOperationIds.FR_CHARGE, PROVIDER,
-                "server_menu:flight_ring", "charge_durability", "same", "");
-        assertTrue(conversion.startsWith("ss:cv:"));
-        assertNotEquals(conversion, flightRing);
-    }
 }

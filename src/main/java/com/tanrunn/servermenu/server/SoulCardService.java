@@ -1,11 +1,6 @@
 package com.tanrunn.servermenu.server;
 
 import com.tanrunn.servermenu.ServerMenuMod;
-import com.tanrunn.servermenu.api.economy.EconomyBridgeRegistry;
-import com.tanrunn.servermenu.api.economy.EconomyOperationIds;
-import com.tanrunn.servermenu.api.economy.EconomyTransactionResult;
-import com.tanrunn.servermenu.api.economy.EconomyTransactionStatus;
-import com.tanrunn.servermenu.server.integration.lc.LcConstants;
 import com.tanrunn.servermenu.server.registry.ModItems;
 import com.tanrunn.servermenu.server.registry.SoulSocialSecurityCardItem;
 import net.minecraft.core.BlockPos;
@@ -21,12 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
 import java.lang.reflect.Method;
-import java.util.UUID;
 
 /** 灵魂社保卡的服务端权威逻辑。 */
 public final class SoulCardService {
-    private static final String SOURCE = "server_menu:soul_social_security_card";
-    private static final String REASON = "soul_card_exchange";
     private static final String FOUNTAIN_CLASS =
             "com.tanrunn.servermenu.server.integration.lc.LcSoulCardFountainAnimation";
 
@@ -86,26 +78,13 @@ public final class SoulCardService {
             return;
         }
 
-        String requestId = EconomyOperationIds.generate(
-                EconomyOperationIds.SS_CONVERT,
-                LcConstants.PROVIDER_ID,
-                SOURCE,
-                "exchange_souls",
-                UUID.randomUUID().toString(),
-                "");
-        EconomyTransactionResult result = EconomyBridgeRegistry.depositMinorUnits(
-                LcConstants.PROVIDER_ID,
-                player,
-                copper,
-                SOURCE,
-                REASON,
-                requestId);
-        if (!result.success() || result.processedMinorUnits() != copper) {
-            player.displayClientMessage(exchangeFailure(result.status()), true);
+        if (!startFountainAnimation(level, atmPos, copper)) {
+            player.displayClientMessage(Component.translatable(
+                    "message.server_menu.soul_card.exchange_failed"), true);
             return;
         }
 
-        // 入账成功后才清除卡片数据；同一 tick 的后续点击会看到 0，不会重复兑换。
+        // 喷泉动画已成功排入服务端队列后清除卡片数据；同一 tick 的后续点击会看到 0。
         SoulSocialSecurityCardItem.clearSouls(card);
         markInventoryChanged(player);
         player.displayClientMessage(Component.translatable(
@@ -174,25 +153,15 @@ public final class SoulCardService {
         }
     }
 
-    private static void startFountainAnimation(ServerLevel level, BlockPos atmPos, long copper) {
+    private static boolean startFountainAnimation(ServerLevel level, BlockPos atmPos, long copper) {
         try {
             Class<?> animationClass = Class.forName(FOUNTAIN_CLASS, false,
                     SoulCardService.class.getClassLoader());
             Method start = animationClass.getMethod("start", ServerLevel.class, BlockPos.class, long.class);
-            start.invoke(null, level, atmPos, copper);
+            return Boolean.TRUE.equals(start.invoke(null, level, atmPos, copper));
         } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
             ServerMenuMod.LOGGER.warn("[ServerMenu] LC soul-card fountain animation unavailable", exception);
+            return false;
         }
-    }
-
-    private static Component exchangeFailure(EconomyTransactionStatus status) {
-        return switch (status) {
-            case UNAVAILABLE -> Component.translatable(
-                    "message.server_menu.soul_card.unavailable");
-            case QUARANTINED -> Component.translatable(
-                    "message.server_menu.soul_card.quarantined");
-            default -> Component.translatable(
-                    "message.server_menu.soul_card.exchange_failed");
-        };
     }
 }
