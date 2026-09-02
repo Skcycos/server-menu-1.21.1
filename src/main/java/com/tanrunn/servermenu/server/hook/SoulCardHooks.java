@@ -26,7 +26,7 @@ public final class SoulCardHooks {
     public static void onRightClickAtm(PlayerInteractEvent.RightClickBlock event) {
         if (!event.getEntity().isCrouching()
                 || !isAtm(event.getLevel(), event.getPos())
-                || !SoulCardService.hasConvertibleCard(event.getEntity())) {
+                || !SoulCardService.hasConvertibleCard(event.getItemStack())) {
             return;
         }
 
@@ -34,7 +34,7 @@ public final class SoulCardHooks {
         event.setCancellationResult(InteractionResult.SUCCESS);
         if (!event.getLevel().isClientSide()
                 && event.getEntity() instanceof ServerPlayer player) {
-            SoulCardService.exchangeAtAtm(player, player.serverLevel(), event.getPos());
+            SoulCardService.exchangeAtAtm(player, player.serverLevel(), event.getPos(), event.getHand());
         }
     }
 

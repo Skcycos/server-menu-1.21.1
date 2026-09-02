@@ -12,6 +12,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
@@ -53,19 +54,19 @@ public final class SoulCardService {
                 SoulSocialSecurityCardItem.MAX_SOULS), true);
     }
 
-    /** 是否存在一张身上携带且有灵魂可兑换的卡片。 */
-    public static boolean hasConvertibleCard(Player player) {
-        ItemStack card = findCarriedCard(player);
+    /** 是否为拿在当前交互手中且有灵魂可兑换的卡片。 */
+    public static boolean hasConvertibleCard(ItemStack card) {
         return !card.isEmpty() && SoulSocialSecurityCardItem.souls(card) > 0;
     }
 
-    /** 在 ATM 交互处将第一张直接携带的卡片兑换为 LC main 链铜币。 */
-    public static void exchangeAtAtm(ServerPlayer player, ServerLevel level, BlockPos atmPos) {
-        if (player == null || level == null || atmPos == null) {
+    /** 在 ATM 交互处将实际拿在交互手中的卡片兑换为 LC main 链铜币。 */
+    public static void exchangeAtAtm(ServerPlayer player, ServerLevel level, BlockPos atmPos,
+                                     InteractionHand hand) {
+        if (player == null || level == null || atmPos == null || hand == null) {
             return;
         }
 
-        ItemStack card = findCarriedCard(player);
+        ItemStack card = player.getItemInHand(hand);
         int souls = SoulSocialSecurityCardItem.souls(card);
         if (card.isEmpty() || souls <= 0) {
             return;
