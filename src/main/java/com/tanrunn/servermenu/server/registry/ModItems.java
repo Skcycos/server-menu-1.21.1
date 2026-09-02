@@ -24,6 +24,9 @@ public final class ModItems {
     public static final DeferredItem<Item> TABLET = ITEMS.registerSimpleItem("tablet", new Item.Properties().stacksTo(1));
     public static final DeferredItem<FlightRingItem> FLIGHT_RING = ITEMS.register("flight_ring",
             () -> new FlightRingItem(new Item.Properties()));
+    public static final DeferredItem<SoulSocialSecurityCardItem> SOUL_SOCIAL_SECURITY_CARD = ITEMS.register(
+            "soul_social_security_card",
+            () -> new SoulSocialSecurityCardItem(new Item.Properties()));
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
@@ -32,6 +35,7 @@ public final class ModItems {
                     .displayItems((parameters, output) -> {
                         output.accept(TABLET.get());
                         output.accept(FLIGHT_RING.get());
+                        output.accept(SOUL_SOCIAL_SECURITY_CARD.get());
                     })
                     .build());
 

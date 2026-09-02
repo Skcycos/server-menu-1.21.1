@@ -14,5 +14,15 @@
   "message.server_menu.flight_ring.quarantined": "当前世界的LC账户处于隔离状态，无法充能",
   "message.server_menu.flight_ring.unavailable": "LC ATM当前不可用，无法充能",
   "message.server_menu.flight_ring.charge_failed": "飞行戒指充能失败",
-  "message.server_menu.flight_ring.empty": "飞行戒指耐久耗尽，创造飞行已关闭"
+  "message.server_menu.flight_ring.empty": "飞行戒指耐久耗尽，创造飞行已关闭",
+
+  "item.server_menu.soul_social_security_card": "灵魂社保卡",
+  "item.server_menu.soul_social_security_card.souls": "灵魂：%s/%s",
+  "item.server_menu.soul_social_security_card.carry_rule": "必须直接携带在身上才会统计击杀",
+  "item.server_menu.soul_social_security_card.exchange_rule": "潜行右键 LC ATM 可兑换为铜币",
+  "message.server_menu.soul_card.gained": "灵魂社保卡：灵魂 %s/%s",
+  "message.server_menu.soul_card.exchanged": "已上交 %s 点灵魂，获得 %s 枚 LC 铜币",
+  "message.server_menu.soul_card.unavailable": "LC ATM当前不可用，无法兑换灵魂",
+  "message.server_menu.soul_card.quarantined": "当前世界的LC账户处于隔离状态，无法兑换灵魂",
+  "message.server_menu.soul_card.exchange_failed": "灵魂兑换失败"
 }

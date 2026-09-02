@@ -67,6 +67,7 @@ public final class LcEconomyBootstrap {
         LOGGER.info("[ServerMenu] LC economy bridge registered as providerId={} chain={}",
                 provider.providerId(), provider.currencyChain());
 
+        registerSoulCardFountain(loader);
         registerBuildShop(loader, provider);
         registerStockMarket(loader, provider);
     }
@@ -137,6 +138,18 @@ public final class LcEconomyBootstrap {
             }
         } catch (LinkageError | ReflectiveOperationException | RuntimeException e) {
             LOGGER.error("[ServerMenu] cannot register StockMarket LC currency bridge", e);
+        }
+    }
+
+    private static void registerSoulCardFountain(ClassLoader loader) {
+        try {
+            Class<?> animationClass = Class.forName(
+                    "com.tanrunn.servermenu.server.integration.lc.LcSoulCardFountainAnimation",
+                    false, loader);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(animationClass);
+            LOGGER.info("[ServerMenu] registered LC soul-card fountain animation");
+        } catch (LinkageError | ReflectiveOperationException | RuntimeException e) {
+            LOGGER.error("[ServerMenu] cannot register LC soul-card fountain animation", e);
         }
     }
 

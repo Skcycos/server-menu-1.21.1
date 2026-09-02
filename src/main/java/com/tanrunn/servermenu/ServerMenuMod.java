@@ -9,6 +9,7 @@ import com.tanrunn.servermenu.server.hook.FlightRingHooks;
 import com.tanrunn.servermenu.server.integration.curios.CuriosBootstrap;
 import com.tanrunn.servermenu.server.integration.AppLauncherRegistry;
 import com.tanrunn.servermenu.server.registry.ModItems;
+import com.tanrunn.servermenu.server.registry.ModDataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -40,6 +41,7 @@ public class ServerMenuMod {
         modEventBus.addListener(this::registerPayloads);
 
         ModItems.ITEMS.register(modEventBus);
+        ModDataComponents.COMPONENTS.register(modEventBus);
         ModItems.TABS.register(modEventBus);
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
                 com.tanrunn.servermenu.server.TerritoryShopConfig.SPEC,
@@ -52,6 +54,7 @@ public class ServerMenuMod {
         // 命令与退出清理由 @EventBusSubscriber 的 ServerEvents 负责。
         NeoForge.EVENT_BUS.register(TabletHooks.class);
         NeoForge.EVENT_BUS.register(FlightRingHooks.class);
+        NeoForge.EVENT_BUS.register(com.tanrunn.servermenu.server.hook.SoulCardHooks.class);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

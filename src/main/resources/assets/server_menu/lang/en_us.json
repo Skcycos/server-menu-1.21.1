@@ -14,5 +14,15 @@
   "message.server_menu.flight_ring.quarantined": "The LC account is quarantined in this world",
   "message.server_menu.flight_ring.unavailable": "The LC ATM is unavailable",
   "message.server_menu.flight_ring.charge_failed": "The flight ring could not be charged",
-  "message.server_menu.flight_ring.empty": "The flight ring is depleted; creative flight is disabled"
+  "message.server_menu.flight_ring.empty": "The flight ring is depleted; creative flight is disabled",
+
+  "item.server_menu.soul_social_security_card": "Soul Social Security Card",
+  "item.server_menu.soul_social_security_card.souls": "Souls: %s/%s",
+  "item.server_menu.soul_social_security_card.carry_rule": "Kills count only while carried directly",
+  "item.server_menu.soul_social_security_card.exchange_rule": "Sneak + right-click an LC ATM to exchange",
+  "message.server_menu.soul_card.gained": "Soul card: %s/%s souls",
+  "message.server_menu.soul_card.exchanged": "Exchanged %s souls for %s LC copper",
+  "message.server_menu.soul_card.unavailable": "LC ATM is unavailable; souls were not exchanged",
+  "message.server_menu.soul_card.quarantined": "The LC account is quarantined in this world",
+  "message.server_menu.soul_card.exchange_failed": "Soul exchange failed"
 }
