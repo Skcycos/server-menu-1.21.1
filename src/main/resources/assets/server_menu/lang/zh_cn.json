@@ -2,5 +2,17 @@
   "itemGroup.server_menu": "服务器服务中心",
 
   "item.server_menu.tablet": "服务器服务中心",
-  "item.server_menu.tablet.tooltip": "打开服务器服务中心"
+  "item.server_menu.tablet.tooltip": "打开服务器服务中心",
+
+  "item.server_menu.flight_ring": "飞行戒指",
+  "item.server_menu.flight_ring.tooltip": "Shift+右键消耗LC铜币，修复1点耐久",
+  "item.server_menu.flight_ring.flight": "每点耐久可支持2秒创造飞行，仅限白名单世界",
+
+  "message.server_menu.flight_ring.full": "飞行戒指耐久已满",
+  "message.server_menu.flight_ring.charged": "飞行戒指已充能：%s/%s 点耐久",
+  "message.server_menu.flight_ring.insufficient_funds": "LC ATM铜币不足，无法充能",
+  "message.server_menu.flight_ring.quarantined": "当前世界的LC账户处于隔离状态，无法充能",
+  "message.server_menu.flight_ring.unavailable": "LC ATM当前不可用，无法充能",
+  "message.server_menu.flight_ring.charge_failed": "飞行戒指充能失败",
+  "message.server_menu.flight_ring.empty": "飞行戒指耐久耗尽，创造飞行已关闭"
 }

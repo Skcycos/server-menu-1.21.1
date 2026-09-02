@@ -2,5 +2,17 @@
   "itemGroup.server_menu": "Server Service Center",
 
   "item.server_menu.tablet": "Server Service Center",
-  "item.server_menu.tablet.tooltip": "Open the Server Service Center"
+  "item.server_menu.tablet.tooltip": "Open the Server Service Center",
+
+  "item.server_menu.flight_ring": "Flight Ring",
+  "item.server_menu.flight_ring.tooltip": "Sneak + right-click to spend LC copper and repair 1 durability",
+  "item.server_menu.flight_ring.flight": "Each durability point supports 2 seconds of creative flight; whitelist worlds only",
+
+  "message.server_menu.flight_ring.full": "The flight ring is fully charged",
+  "message.server_menu.flight_ring.charged": "Flight ring charged: %s/%s durability",
+  "message.server_menu.flight_ring.insufficient_funds": "Not enough LC ATM copper to charge the ring",
+  "message.server_menu.flight_ring.quarantined": "The LC account is quarantined in this world",
+  "message.server_menu.flight_ring.unavailable": "The LC ATM is unavailable",
+  "message.server_menu.flight_ring.charge_failed": "The flight ring could not be charged",
+  "message.server_menu.flight_ring.empty": "The flight ring is depleted; creative flight is disabled"
 }

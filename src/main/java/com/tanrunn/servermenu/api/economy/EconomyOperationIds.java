@@ -42,6 +42,8 @@ public final class EconomyOperationIds {
     public static final String SM_SECURITIES_CREDIT = "sm:sc:";
     /** StockMarket 补偿（任意方向的失败回滚）。 */
     public static final String SM_ROLLBACK = "sm:rb:";
+    /** 飞行戒指手动充能（每次 Shift+右键修复一点耐久）。 */
+    public static final String FR_CHARGE = "fr:ch:";
 
     private EconomyOperationIds() {
     }

@@ -23,7 +23,7 @@ class EconomyOperationIdsTest {
                 EconomyOperationIds.BS_WITHDRAW, EconomyOperationIds.BS_REFUND,
                 EconomyOperationIds.SM_BANK_DEBIT, EconomyOperationIds.SM_BANK_CREDIT,
                 EconomyOperationIds.SM_SECURITIES_DEBIT, EconomyOperationIds.SM_SECURITIES_CREDIT,
-                EconomyOperationIds.SM_ROLLBACK}) {
+                EconomyOperationIds.SM_ROLLBACK, EconomyOperationIds.FR_CHARGE}) {
             String id = EconomyOperationIds.generate(domain, PROVIDER, "s", "t", "req-1", "d");
             assertTrue(id.length() <= EconomyOperationIds.MAX_LENGTH,
                     domain + " 长度超限: " + id + " (" + id.length() + ")");
@@ -107,5 +107,15 @@ class EconomyOperationIdsTest {
         String withdraw = EconomyOperationIds.generate(EconomyOperationIds.SM_BANK_DEBIT, PROVIDER, "s",
                 "bank_debit", "dup", "WITHDRAW_TO_BANK");
         assertNotEquals(deposit, withdraw);
+    }
+
+    @Test
+    void flightRingChargeUsesItsOwnDomain() {
+        String charge = EconomyOperationIds.generate(EconomyOperationIds.FR_CHARGE, PROVIDER,
+                "server_menu:flight_ring", "charge_durability", "same", "");
+        String stockMarket = EconomyOperationIds.generate(EconomyOperationIds.SM_BANK_DEBIT, PROVIDER,
+                "server_menu_lc_bank", "bank_debit", "same", "");
+        assertTrue(charge.startsWith("fr:ch:"));
+        assertNotEquals(charge, stockMarket);
     }
 }

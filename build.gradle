@@ -153,6 +153,9 @@ dependencies {
     // - 适配器只在 ModList.isLoaded("lightmanscurrency") 且探针通过后反射加载。
     compileOnly files(lcReferenceJar())
 
+    // Curios typed API 仅用于飞行戒指的可选装备槽适配；Curios JAR 不进入发布产物。
+    compileOnly files(curiosReferenceJar())
+
     // Unit tests for pure menu logic
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -169,6 +172,8 @@ dependencies {
     testImplementation files(businessApiJars())
     // 测试用 LC 参考 JAR：描述符探针校验服务器安装的 LC API 签名与适配器所用反射名一致。
     testImplementation files(lcReferenceJar())
+    // 测试用 Curios 参考 JAR：编译/装配 Curios 9.x 适配器，不打包进发布产物。
+    testImplementation files(curiosReferenceJar())
 }
 
 // FML-JUnit 会在测试 JVM 中加载 classpath 上的全部 Mod；ApricityUI 是客户端专属 Mod，
@@ -181,7 +186,7 @@ configurations.testRuntimeClasspath {
  * 本地参考 JAR 解析（可移植，不依赖单一绝对路径）：
  *
  * 优先级 1) Gradle property：
- *     -PbuildshopJar=... / -PstockmarketJar=... / -PchineseOracleJar=... / -PlcJar=... / -PopacJar=... / -PluckPermsJar=...
+ *     -PbuildshopJar=... / -PstockmarketJar=... / -PchineseOracleJar=... / -PlcJar=... / -PcuriosJar=... / -PopacJar=... / -PluckPermsJar=...
  *     （以及 -PserverModsDir=... 指定服务器 mods 目录）；
  * 优先级 2) 工作区相对路径（跨仓库目录曾迁移，保留历史路径兜底）；
  * 优先级 3) 本机服务器 mods 目录（-PserverModsDir 指定或本机已知路径）作最后兜底。
@@ -271,6 +276,13 @@ def lcReferenceJar() {
     return resolveOptionalJar("lightmanscurrency",
             ["lcJar"], "[莱特曼货币]lightmanscurrency-1.21-2.3.0.5.jar",
             project.file("../LightmansCurrency/build/libs"), ["lightmanscurrency-"])
+}
+
+// Curios API 参考 JAR：仅用于可选 typed 适配器的编译与测试，绝不进入 server-menu 产物。
+def curiosReferenceJar() {
+    return resolveOptionalJar("curios",
+            ["curiosJar"], "[饰品API]curios-neoforge-9.5.1+1.21.1.jar",
+            project.file("../Curios/build/libs"), ["curios-neoforge-"])
 }
 
 // 服务器安装的 Open Parties and Claims 参考 JAR：仅编译用，绝不进入发布产物。

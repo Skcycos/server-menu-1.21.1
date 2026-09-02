@@ -22,12 +22,17 @@ public final class ModItems {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ServerMenuMod.MODID);
 
     public static final DeferredItem<Item> TABLET = ITEMS.registerSimpleItem("tablet", new Item.Properties().stacksTo(1));
+    public static final DeferredItem<FlightRingItem> FLIGHT_RING = ITEMS.register("flight_ring",
+            () -> new FlightRingItem(new Item.Properties()));
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.server_menu"))
                     .icon(() -> new ItemStack(TABLET.get()))
-                    .displayItems((parameters, output) -> output.accept(TABLET.get()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(TABLET.get());
+                        output.accept(FLIGHT_RING.get());
+                    })
                     .build());
 
     private ModItems() {

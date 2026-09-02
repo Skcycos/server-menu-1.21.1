@@ -5,6 +5,8 @@ import com.tanrunn.servermenu.common.network.ServerMenuNetwork;
 import com.tanrunn.servermenu.server.MenuCommands;
 import com.tanrunn.servermenu.server.MenuService;
 import com.tanrunn.servermenu.server.hook.TabletHooks;
+import com.tanrunn.servermenu.server.hook.FlightRingHooks;
+import com.tanrunn.servermenu.server.integration.curios.CuriosBootstrap;
 import com.tanrunn.servermenu.server.integration.AppLauncherRegistry;
 import com.tanrunn.servermenu.server.registry.ModItems;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,13 +44,18 @@ public class ServerMenuMod {
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
                 com.tanrunn.servermenu.server.TerritoryShopConfig.SPEC,
                 "server-menu-territory.toml");
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER,
+                com.tanrunn.servermenu.server.FlightRingConfig.SPEC,
+                "server-menu-flight.toml");
 
         // ServerMenuMod 自身没有 @SubscribeEvent 方法，不能注册到 EVENT_BUS；
         // 命令与退出清理由 @EventBusSubscriber 的 ServerEvents 负责。
         NeoForge.EVENT_BUS.register(TabletHooks.class);
+        NeoForge.EVENT_BUS.register(FlightRingHooks.class);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(CuriosBootstrap::bootstrap);
         LOGGER.info("{} initialized", MODID);
     }
 
@@ -82,6 +89,7 @@ public class ServerMenuMod {
         public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
             if (event.getEntity() instanceof ServerPlayer player) {
                 MenuService.INSTANCE.onPlayerLoggedOut(player.getUUID());
+                com.tanrunn.servermenu.server.FlightRingService.onPlayerLoggedOut(player);
             }
         }
     }

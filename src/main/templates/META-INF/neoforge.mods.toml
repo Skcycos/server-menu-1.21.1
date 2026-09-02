@@ -142,6 +142,13 @@ almanac and Open Parties and Claims can be launched from one Pad.
     ordering="AFTER"
     side="BOTH"
 
+# Curios 为飞行戒指提供 ring 装备槽；缺少 Curios 时 server-menu 仍可启动，但戒指能力不可用。
+[[dependencies.${mod_id}]]
+    modId="curios"
+    type="optional"
+    ordering="AFTER"
+    side="BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.
