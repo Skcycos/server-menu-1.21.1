@@ -1,6 +1,7 @@
 package com.tanrunn.servermenu.server.integration.curios;
 
 import com.tanrunn.servermenu.server.FlightRingService;
+import com.tanrunn.servermenu.server.registry.ModItems;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.SlotContext;
@@ -25,9 +26,19 @@ final class CuriosFlightRing implements ICurioItem {
 
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
-        if (!slotContext.cosmetic() && slotContext.entity() instanceof ServerPlayer player) {
+        // Curios 9.x compares the complete ItemStack on every tick.  Changing the
+        // vanilla durability component therefore emits an unequip/equip pair even
+        // though the same ring is still in the slot.  Only clear flight when the
+        // replacement is actually empty or a different item.
+        if (!slotContext.cosmetic() && shouldClearFlightState(newStack)
+                && slotContext.entity() instanceof ServerPlayer player) {
             FlightRingService.unequip(player, slotContext.identifier(), slotContext.index());
         }
+    }
+
+    static boolean shouldClearFlightState(ItemStack newStack) {
+        return newStack == null || newStack.isEmpty()
+                || !newStack.is(ModItems.FLIGHT_RING.get());
     }
 
     @Override
